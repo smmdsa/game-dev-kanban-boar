@@ -5,6 +5,7 @@ import { KanbanColumn } from '@/components/KanbanColumn';
 import { TaskDetailModal } from '@/components/TaskDetailModal';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
 import { ColumnModal } from '@/components/ColumnModal';
+import { SearchFilter } from '@/components/SearchFilter';
 import { Button } from '@/components/ui/button';
 import { Plus } from '@phosphor-icons/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,6 +26,7 @@ function App() {
   const [targetColumnId, setTargetColumnId] = useState<string>('');
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
+  const [filteredTaskIds, setFilteredTaskIds] = useState<string[]>([]);
 
   const handleCreateColumn = (name: string, color: string) => {
     setColumns((currentColumns) => {
@@ -134,15 +136,26 @@ function App() {
   };
 
   const getTasksByColumn = (columnId: string) => {
-    return safeTasks.filter((task) => task.columnId === columnId);
+    const columnTasks = safeTasks.filter((task) => task.columnId === columnId);
+    
+    if (filteredTaskIds.length === 0) {
+      return columnTasks;
+    }
+    
+    return columnTasks.filter((task) => filteredTaskIds.includes(task.id));
   };
+
+  const hasActiveFilters = filteredTaskIds.length > 0;
+  const visibleTaskCount = hasActiveFilters
+    ? filteredTaskIds.length
+    : safeTasks.length;
 
   return (
     <div className="min-h-screen bg-background">
       <Toaster position="top-right" />
       
       <header className="border-b bg-card px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-primary">GameDev Kanban</h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -155,6 +168,20 @@ function App() {
             Add Column
           </Button>
         </div>
+
+        {safeTasks.length > 0 && (
+          <div className="flex items-center gap-4">
+            <SearchFilter
+              tasks={safeTasks}
+              onFilteredTasksChange={setFilteredTaskIds}
+            />
+            {hasActiveFilters && (
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {visibleTaskCount} {visibleTaskCount === 1 ? 'task' : 'tasks'} found
+              </span>
+            )}
+          </div>
+        )}
       </header>
 
       <main className="p-6">
