@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button
+import { useState, useEffect } from 'react';
+import { Task } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-interface SearchFilterProps {
-  onFilteredTasksChange: (taskIds: string[]) => void;
-
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { MagnifyingGlass, Funnel, X } from '@phosphor-icons/react';
 
 interface SearchFilterProps {
   tasks: Task[];
@@ -18,52 +18,58 @@ export function SearchFilter({ tasks, onFilteredTasksChange }: SearchFilterProps
 
   const allTags = Array.from(new Set(tasks.flatMap((task) => task.tags))).sort();
 
-    filterTasks(searchQuery, newTags);
+  const filterTasks = (query: string, tags: string[]) => {
+    if (!query && tags.length === 0) {
+      onFilteredTasksChange([]);
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const filtered = tasks.filter((task) => {
+      const matchesSearch =
+        !query ||
+        task.title.toLowerCase().includes(lowerQuery) ||
+        task.description.toLowerCase().includes(lowerQuery);
+
+      const matchesTags =
+        tags.length === 0 ||
+        tags.some((tag) => task.tags.includes(tag));
+
+      return matchesSearch && matchesTags;
+    });
+
+    onFilteredTasksChange(filtered.map((task) => task.id));
+  };
+
+  useEffect(() => {
+    filterTasks(searchQuery, selectedTags);
+  }, [tasks]);
+
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
     filterTasks(query, selectedTags);
   };
 
   const handleTagToggle = (tag: string) => {
-    const lowerQuery = query.toLowerCase();
+    const newTags = selectedTags.includes(tag)
       ? selectedTags.filter((t) => t !== tag)
-        !query ||
-    setSelectedTags(newTags);
+      : [...selectedTags, tag];
 
+    setSelectedTags(newTags);
+    filterTasks(searchQuery, newTags);
   };
 
-        <MagnifyingGlass
-          className="absolute left-3 t
-        <Input
-          pla
-     
+  const handleClear = () => {
+    setSearchQuery('');
+    setSelectedTags([]);
+    onFilteredTasksChange([]);
+  };
 
-          <button
-            className="absolute right-3 top-1
-            <X size={16} />
-        )}
+  const hasActiveFilters = searchQuery || selectedTags.length > 0;
 
-        <PopoverTrigger asChild>
-
-        </PopoverTrigger>
-          <div className="space-y-4">
-
-                <p className="text-sm text
-       
-
-                      variant={selectedTags.includes(tag) ?
-    
-
-                  ))}
-              )}
-          </div>
-      </Popover>
-    
-
-        </Button>
-
-}
-
-
+  return (
+    <div className="flex items-center gap-2 flex-1">
+      <div className="relative flex-1">
         <MagnifyingGlass
           size={20}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
