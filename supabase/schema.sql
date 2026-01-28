@@ -5,9 +5,19 @@
 -- Dashboard > SQL Editor > New query
 
 -- ===========================================
+-- Drop existing tables (si existen)
+-- ===========================================
+-- ADVERTENCIA: Esto eliminará todos los datos existentes
+-- Solo ejecutar si estás seguro o es una nueva instalación
+
+DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS columns CASCADE;
+DROP TABLE IF EXISTS user_settings CASCADE;
+
+-- ===========================================
 -- Tabla: columns
 -- ===========================================
-CREATE TABLE IF NOT EXISTS columns (
+CREATE TABLE columns (
   id TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -24,7 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_columns_user_id ON columns (user_id);
 -- ===========================================
 -- Tabla: tasks
 -- ===========================================
-CREATE TABLE IF NOT EXISTS tasks (
+CREATE TABLE tasks (
   id TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -47,7 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks (user_id);
 -- ===========================================
 -- Tabla: user_settings (para preferencias)
 -- ===========================================
-CREATE TABLE IF NOT EXISTS user_settings (
+CREATE TABLE user_settings (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   theme TEXT DEFAULT 'light' CHECK (theme IN ('light', 'dark')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
