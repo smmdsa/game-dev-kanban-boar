@@ -9,6 +9,7 @@
 -- ===========================================
 CREATE TABLE IF NOT EXISTS columns (
   id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   color TEXT NOT NULL DEFAULT 'oklch(0.65 0.15 260)',
   "order" INTEGER NOT NULL DEFAULT 0,
@@ -16,14 +17,16 @@ CREATE TABLE IF NOT EXISTS columns (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Índice para ordenamiento
+-- Índices para ordenamiento y usuario
 CREATE INDEX IF NOT EXISTS idx_columns_order ON columns ("order");
+CREATE INDEX IF NOT EXISTS idx_columns_user_id ON columns (user_id);
 
 -- ===========================================
 -- Tabla: tasks
 -- ===========================================
 CREATE TABLE IF NOT EXISTS tasks (
   id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT DEFAULT '',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -39,12 +42,13 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE INDEX IF NOT EXISTS idx_tasks_column_id ON tasks (column_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority);
 CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks (created_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks (user_id);
 
 -- ===========================================
 -- Tabla: user_settings (para preferencias)
 -- ===========================================
 CREATE TABLE IF NOT EXISTS user_settings (
-  user_id TEXT PRIMARY KEY,
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   theme TEXT DEFAULT 'light' CHECK (theme IN ('light', 'dark')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -85,33 +89,62 @@ CREATE TRIGGER update_user_settings_updated_at
 -- ===========================================
 -- Row Level Security (RLS)
 -- ===========================================
--- Por ahora permitimos acceso público (anon)
--- Puedes ajustar esto cuando implementes autenticación
+-- Políticas de seguridad por usuario autenticado
 
 ALTER TABLE columns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
 
--- Políticas públicas (para desarrollo)
--- NOTA: Ajusta estas políticas en producción con autenticación
+-- Columns: solo el usuario puede ver/modificar sus propias columnas
+DROP POLICY IF EXISTS "Users can view their own columns" ON columns;
+CREATE POLICY "Users can view their own columns" ON columns
+  FOR SELECT
+  USING (auth.uid() = user_id);
 
--- Columns: acceso completo para todos
-CREATE POLICY "Allow all access to columns" ON columns
-  FOR ALL
-  USING (true)
-  WITH CHECK (true);
+DROP POLICY IF EXISTS "Users can insert their own columns" ON columns;
+CREATE POLICY "Users can insert their own columns" ON columns
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
--- Tasks: acceso completo para todos
-CREATE POLICY "Allow all access to tasks" ON tasks
-  FOR ALL
-  USING (true)
-  WITH CHECK (true);
+DROP POLICY IF EXISTS "Users can update their own columns" ON columns;
+CREATE POLICY "Users can update their own columns" ON columns
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
--- User settings: acceso completo para todos
-CREATE POLICY "Allow all access to user_settings" ON user_settings
+DROP POLICY IF EXISTS "Users can delete their own columns" ON columns;
+CREATE POLICY "Users can delete their own columns" ON columns
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Tasks: solo el usuario puede ver/modificar sus propias tareas
+DROP POLICY IF EXISTS "Users can view their own tasks" ON tasks;
+CREATE POLICY "Users can view their own tasks" ON tasks
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert their own tasks" ON tasks;
+CREATE POLICY "Users can insert their own tasks" ON tasks
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update their own tasks" ON tasks;
+CREATE POLICY "Users can update their own tasks" ON tasks
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete their own tasks" ON tasks;
+CREATE POLICY "Users can delete their own tasks" ON tasks
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- User settings: solo el usuario puede ver/modificar sus propias preferencias
+DROP POLICY IF EXISTS "Users can manage their own settings" ON user_settings;
+CREATE POLICY "Users can manage their own settings" ON user_settings
   FOR ALL
-  USING (true)
-  WITH CHECK (true);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ===========================================
 -- Datos iniciales (opcional)

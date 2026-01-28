@@ -4,6 +4,7 @@ A powerful Kanban board built with **GitHub Spark** framework, designed specific
 
 ## ✨ Features
 
+- 🔐 **User Authentication**: Sign up, sign in, and secure user sessions
 - 🎯 **Drag & Drop**: Intuitive task and column reordering
 - 🎨 **Customizable Columns**: Create unlimited columns with custom colors
 - 🔥 **Priority System**: Critical, High, Medium, Low task priorities
@@ -12,6 +13,7 @@ A powerful Kanban board built with **GitHub Spark** framework, designed specific
 - 🌓 **Dark/Light Theme**: Built-in theme switching
 - 🔍 **Search & Filter**: Find tasks instantly
 - 💾 **Dual Storage**: Switch between local (Spark) and cloud (Supabase)
+- 🔒 **Row Level Security**: Your data is protected and isolated
 
 ## 🚀 Quick Start
 
@@ -78,25 +80,18 @@ VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your-anon-key-here
 3. Copy contents of `supabase/schema.sql`
 4. Execute the script
 
-### Step 4: Enable Supabase Provider
+**⚠️ Note:** The schema includes Row Level Security (RLS) for multi-user support.
 
-Edit `src/main.tsx`:
+### Step 4: Start Using!
 
-```tsx
-import { createSupabaseProvider } from '@/data';
+The app is now configured with authentication. Simply:
+1. Run `npm run dev`
+2. You'll see a login/register form
+3. Create an account or sign in
+4. Start managing your tasks!
 
-const supabaseProvider = createSupabaseProvider();
-
-createRoot(document.getElementById('root')!).render(
-  <ErrorBoundary FallbackComponent={ErrorFallback}>
-    <DataProviderWrapper customProvider={supabaseProvider}>
-      <App />
-    </DataProviderWrapper>
-  </ErrorBoundary>
-);
-```
-
-**📚 Full documentation:** See [SECRETS_SETUP.md](SECRETS_SETUP.md)
+**📚 Authentication guide:** See [AUTH_IMPLEMENTATION.md](AUTH_IMPLEMENTATION.md)  
+**📚 Configuration guide:** See [SECRETS_SETUP.md](SECRETS_SETUP.md)
 
 ## 🏗️ Architecture
 

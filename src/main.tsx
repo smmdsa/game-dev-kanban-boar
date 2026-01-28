@@ -4,20 +4,18 @@ import "@github/spark/spark"
 
 import App from './App.tsx'
 import { ErrorFallback } from './ErrorFallback.tsx'
-import { DataProviderWrapper, createSupabaseProvider } from '@/data'
+import { DataProviderWrapper } from '@/data'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { AuthenticatedApp } from './AuthenticatedApp.tsx'
 
 import "./main.css"
 import "./styles/theme.css"
 import "./index.css"
 
-const supabaseProvider = createSupabaseProvider({
-  userId: 'test-user-123',
-});
-
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
-    <DataProviderWrapper customProvider={supabaseProvider} >
-      <App />
-    </DataProviderWrapper>
+    <AuthProvider>
+      <AuthenticatedApp />
+    </AuthProvider>
    </ErrorBoundary>
 )

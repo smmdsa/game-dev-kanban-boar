@@ -27,7 +27,10 @@ function failure<T>(error: Error): Result<T> {
  * Implementación de TaskRepository con Supabase
  */
 export class SupabaseTaskRepository implements TaskRepository {
-  constructor(private client: SupabaseClient) {}
+  constructor(
+    private client: SupabaseClient,
+    private userId: string
+  ) {}
 
   async getTasks(): Promise<Result<Task[]>> {
     const { data, error } = await this.client
@@ -122,6 +125,7 @@ export class SupabaseTaskRepository implements TaskRepository {
   private mapTaskToDb(task: Task): Record<string, unknown> {
     return {
       id: task.id,
+      user_id: this.userId,
       title: task.title,
       description: task.description,
       created_at: new Date(task.createdAt).toISOString(),
@@ -138,7 +142,10 @@ export class SupabaseTaskRepository implements TaskRepository {
  * Implementación de ColumnRepository con Supabase
  */
 export class SupabaseColumnRepository implements ColumnRepository {
-  constructor(private client: SupabaseClient) {}
+  constructor(
+    private client: SupabaseClient,
+    private userId: string
+  ) {}
 
   async getColumns(): Promise<Result<Column[]>> {
     const { data, error } = await this.client
@@ -203,6 +210,7 @@ export class SupabaseColumnRepository implements ColumnRepository {
     // Actualizar el orden de cada columna en batch
     const updates = columns.map((col, index) => ({
       id: col.id,
+      user_id: this.userId,
       name: col.name,
       color: col.color,
       order: index,
@@ -232,6 +240,7 @@ export class SupabaseColumnRepository implements ColumnRepository {
   private mapColumnToDb(column: Column): Record<string, unknown> {
     return {
       id: column.id,
+      user_id: this.userId,
       name: column.name,
       color: column.color,
       order: column.order,
@@ -319,8 +328,8 @@ export function createSupabaseProvider(config: SupabaseProviderConfig = {}): Dat
 
   return {
     name: 'supabase',
-    tasks: new SupabaseTaskRepository(client),
-    columns: new SupabaseColumnRepository(client),
+    tasks: new SupabaseTaskRepository(client, userId),
+    columns: new SupabaseColumnRepository(client, userId),
     settings: new SupabaseSettingsRepository(client, userId),
 
     async initialize() {

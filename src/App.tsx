@@ -7,6 +7,7 @@ import { CreateTaskModal } from '@/components/CreateTaskModal';
 import { ColumnModal } from '@/components/ColumnModal';
 import { SearchFilter } from '@/components/SearchFilter';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { UserProfile } from '@/components/UserProfile';
 import { Button } from '@/components/ui/button';
 import { Plus } from '@phosphor-icons/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -213,6 +214,7 @@ function App() {
           </div>
           
           <div className="flex items-center gap-3">
+            <UserProfile />
             <ThemeToggle />
             <Button onClick={() => setCreateColumnOpen(true)} size="lg">
               <Plus size={20} weight="bold" className="mr-2" />
