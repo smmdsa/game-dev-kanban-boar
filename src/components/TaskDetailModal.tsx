@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Trash } from '@phosphor-icons/react';
 import { TaskDetailHeader } from './TaskDetailModal/TaskDetailHeader';
 import { TaskDetailBasicInfo } from './TaskDetailModal/TaskDetailBasicInfo';
+import { TAG_COLORS } from '@/lib/constants';
 import { TaskDetailPriority } from './TaskDetailModal/TaskDetailPriority';
 import { TaskDetailTags } from './TaskDetailModal/TaskDetailTags';
 import { TaskDetailComments } from './TaskDetailModal/TaskDetailComments';
@@ -132,7 +133,7 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+      <DialogContent className="w-[70vw] max-w-[90vw] h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-8 pt-8 pb-4 flex-shrink-0">
           <DialogTitle className="text-2xl font-bold">Task Details</DialogTitle>
         </DialogHeader>
