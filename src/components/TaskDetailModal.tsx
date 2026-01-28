@@ -117,6 +117,8 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
           </div>
 
           <div className="space-y-2">
+            <Label>Priority</Label>
+            <div className="flex gap-2">
               {PRIORITY_LEVELS.map((priorityLevel) => (
                 <button
                   key={priorityLevel.value}
@@ -172,29 +174,28 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
                 className="text-sm"
               />
               <Button
-                  onClick={() => handleAddTag(newTag)}
-                  variant="outline"
-                  size="sm"
-                >
-                  Add
-                </Button>
-              </div>
+                onClick={() => handleAddTag(newTag)}
+                variant="outline"
+                size="sm"
+              >
+                Add
+              </Button>
+            </div>
 
-              <div className="flex flex-wrap gap-2">
-                {TAG_COLORS.filter(tc => !tags.includes(tc.name)).map((tagConfig) => (
-                  <button
-                    key={tagConfig.name}
-                    onClick={() => handleAddTag(tagConfig.name)}
-                    style={{
-                      backgroundColor: tagConfig.color,
-                      color: 'oklch(0.98 0 0)',
-                    }}
-                    className="text-xs px-3 py-1 rounded-full hover:opacity-80 transition-opacity"
-                  >
-                    {tagConfig.name}
-                  </button>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {TAG_COLORS.filter(tc => !tags.includes(tc.name)).map((tagConfig) => (
+                <button
+                  key={tagConfig.name}
+                  onClick={() => handleAddTag(tagConfig.name)}
+                  style={{
+                    backgroundColor: tagConfig.color,
+                    color: 'oklch(0.98 0 0)',
+                  }}
+                  className="text-xs px-3 py-1 rounded-full hover:opacity-80 transition-opacity"
+                >
+                  {tagConfig.name}
+                </button>
+              ))}
             </div>
           </div>
 
