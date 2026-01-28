@@ -117,8 +117,6 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
           </div>
 
           <div className="space-y-2">
-            <Label>Priority</Label>
-            <div className="flex flex-wrap gap-2">
               {PRIORITY_LEVELS.map((priorityLevel) => (
                 <button
                   key={priorityLevel.value}
@@ -161,20 +159,19 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
             </div>
 
             <div className="space-y-2">
-              <div className="flex gap-2">
-                <Input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddTag(newTag);
-                    }
-                  }}
-                  placeholder="Add custom tag"
-                  className="text-sm"
-                />
-                <Button
+              <Input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag(newTag);
+                  }
+                }}
+                placeholder="Add custom tag"
+                className="text-sm"
+              />
+              <Button
                   onClick={() => handleAddTag(newTag)}
                   variant="outline"
                   size="sm"
