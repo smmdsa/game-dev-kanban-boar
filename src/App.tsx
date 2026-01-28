@@ -85,6 +85,7 @@ function App() {
         tags,
         columnId: targetColumnId,
         priority,
+        comments: [],
       };
       return [...tasks, newTask];
     });
