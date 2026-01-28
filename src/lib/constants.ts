@@ -21,3 +21,30 @@ export const TAG_COLORS = [
   { name: 'Testing', color: 'oklch(0.75 0.15 195)' },
   { name: 'Documentation', color: 'oklch(0.80 0.15 90)' },
 ];
+
+export const PRIORITY_LEVELS = [
+  { 
+    value: 'critical' as const, 
+    label: 'Critical', 
+    color: 'oklch(0.55 0.22 25)',
+    borderColor: 'oklch(0.45 0.22 25)',
+  },
+  { 
+    value: 'high' as const, 
+    label: 'High', 
+    color: 'oklch(0.70 0.15 50)',
+    borderColor: 'oklch(0.60 0.15 50)',
+  },
+  { 
+    value: 'medium' as const, 
+    label: 'Medium', 
+    color: 'oklch(0.80 0.15 90)',
+    borderColor: 'oklch(0.70 0.15 90)',
+  },
+  { 
+    value: 'low' as const, 
+    label: 'Low', 
+    color: 'oklch(0.75 0.15 195)',
+    borderColor: 'oklch(0.65 0.15 195)',
+  },
+];

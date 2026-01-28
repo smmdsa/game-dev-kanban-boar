@@ -11,13 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { X } from '@phosphor-icons/react';
-import { TAG_COLORS } from '@/lib/constants';
+import { X, Flag } from '@phosphor-icons/react';
+import { TAG_COLORS, PRIORITY_LEVELS } from '@/lib/constants';
+import { Priority } from '@/lib/types';
 
 interface CreateTaskModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (title: string, description: string, points: number, tags: string[]) => void;
+  onCreate: (title: string, description: string, points: number, tags: string[], priority: Priority) => void;
 }
 
 export function CreateTaskModal({ open, onClose, onCreate }: CreateTaskModalProps) {
@@ -26,6 +27,7 @@ export function CreateTaskModal({ open, onClose, onCreate }: CreateTaskModalProp
   const [points, setPoints] = useState('0');
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
+  const [priority, setPriority] = useState<Priority>('medium');
 
   const handleCreate = () => {
     if (!title.trim()) return;
@@ -34,7 +36,8 @@ export function CreateTaskModal({ open, onClose, onCreate }: CreateTaskModalProp
       title.trim(),
       description.trim(),
       parseInt(points) || 0,
-      tags
+      tags,
+      priority
     );
 
     setTitle('');
@@ -42,6 +45,7 @@ export function CreateTaskModal({ open, onClose, onCreate }: CreateTaskModalProp
     setPoints('0');
     setTags([]);
     setNewTag('');
+    setPriority('medium');
     onClose();
   };
 
@@ -103,6 +107,27 @@ export function CreateTaskModal({ open, onClose, onCreate }: CreateTaskModalProp
               placeholder="0"
               className="text-base"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Priority</Label>
+            <div className="flex flex-wrap gap-2">
+              {PRIORITY_LEVELS.map((priorityLevel) => (
+                <button
+                  key={priorityLevel.value}
+                  onClick={() => setPriority(priorityLevel.value)}
+                  style={{
+                    backgroundColor: priority === priorityLevel.value ? priorityLevel.color : 'transparent',
+                    borderColor: priorityLevel.borderColor,
+                    color: priority === priorityLevel.value ? 'oklch(0.98 0 0)' : priorityLevel.color,
+                  }}
+                  className="text-sm px-4 py-2 rounded-md border-2 hover:opacity-80 transition-all flex items-center gap-2 font-medium"
+                >
+                  <Flag size={16} weight={priority === priorityLevel.value ? 'fill' : 'regular'} />
+                  {priorityLevel.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">

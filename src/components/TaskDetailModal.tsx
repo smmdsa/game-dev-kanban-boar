@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Task } from '@/lib/types';
+import { Task, Priority } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { X, Trash } from '@phosphor-icons/react';
-import { TAG_COLORS } from '@/lib/constants';
+import { X, Trash, Flag } from '@phosphor-icons/react';
+import { TAG_COLORS, PRIORITY_LEVELS } from '@/lib/constants';
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -29,6 +29,7 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
   const [points, setPoints] = useState(task?.points.toString() || '0');
   const [tags, setTags] = useState<string[]>(task?.tags || []);
   const [newTag, setNewTag] = useState('');
+  const [priority, setPriority] = useState<Priority>(task?.priority || 'medium');
 
   const handleSave = () => {
     if (!task || !title.trim()) return;
@@ -39,6 +40,7 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
       description: description.trim(),
       points: parseInt(points) || 0,
       tags,
+      priority,
     };
 
     onSave(updatedTask);
@@ -112,6 +114,27 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
               placeholder="0"
               className="text-base"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Priority</Label>
+            <div className="flex flex-wrap gap-2">
+              {PRIORITY_LEVELS.map((priorityLevel) => (
+                <button
+                  key={priorityLevel.value}
+                  onClick={() => setPriority(priorityLevel.value)}
+                  style={{
+                    backgroundColor: priority === priorityLevel.value ? priorityLevel.color : 'transparent',
+                    borderColor: priorityLevel.borderColor,
+                    color: priority === priorityLevel.value ? 'oklch(0.98 0 0)' : priorityLevel.color,
+                  }}
+                  className="text-sm px-4 py-2 rounded-md border-2 hover:opacity-80 transition-all flex items-center gap-2 font-medium"
+                >
+                  <Flag size={16} weight={priority === priorityLevel.value ? 'fill' : 'regular'} />
+                  {priorityLevel.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">

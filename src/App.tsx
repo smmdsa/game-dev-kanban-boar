@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useKV } from '@github/spark/hooks';
-import { Task, Column } from '@/lib/types';
+import { Task, Column, Priority } from '@/lib/types';
 import { KanbanColumn } from '@/components/KanbanColumn';
 import { TaskDetailModal } from '@/components/TaskDetailModal';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
@@ -73,7 +73,7 @@ function App() {
     setCreateTaskOpen(true);
   };
 
-  const handleCreateTask = (title: string, description: string, points: number, tags: string[]) => {
+  const handleCreateTask = (title: string, description: string, points: number, tags: string[], priority: Priority) => {
     setTasks((currentTasks) => {
       const tasks = currentTasks || [];
       const newTask: Task = {
@@ -84,6 +84,7 @@ function App() {
         points,
         tags,
         columnId: targetColumnId,
+        priority,
       };
       return [...tasks, newTask];
     });

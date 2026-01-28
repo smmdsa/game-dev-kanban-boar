@@ -1,3 +1,5 @@
+export type Priority = 'critical' | 'high' | 'medium' | 'low';
+
 export interface Task {
   id: string;
   title: string;
@@ -6,6 +8,7 @@ export interface Task {
   points: number;
   tags: string[];
   columnId: string;
+  priority: Priority;
 }
 
 export interface Column {

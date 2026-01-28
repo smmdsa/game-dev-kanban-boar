@@ -27,11 +27,11 @@ This is a focused task management tool with several interconnected features (col
 - Success criteria: New columns persist after refresh, can be reordered via drag-and-drop, and tasks can be moved into them
 
 **Task Card Creation**
-- Functionality: Create task cards with title, description, story points, and tags
-- Purpose: Capture all relevant information about a game development task (feature, bug, art asset, etc.)
+- Functionality: Create task cards with title, description, story points, tags, and priority level
+- Purpose: Capture all relevant information about a game development task (feature, bug, art asset, etc.) with visual priority indicators
 - Trigger: "+" button within any column
-- Progression: Click + → Enter title (required) → Optionally add description, points, tags → Save → Card appears in column
-- Success criteria: Cards display title prominently, show metadata compactly, and persist across sessions
+- Progression: Click + → Enter title (required) → Select priority level (Critical/High/Medium/Low) → Optionally add description, points, tags → Save → Card appears in column with color-coded priority
+- Success criteria: Cards display title prominently, show priority badge and colored border, display metadata compactly, and persist across sessions
 
 **Drag-and-Drop Task Movement**
 - Functionality: Drag task cards between columns to update their status
@@ -48,11 +48,11 @@ This is a focused task management tool with several interconnected features (col
 - Success criteria: Smooth reordering, visual indication of dragging column, all tasks remain with column during move, order persists
 
 **Task Detail View**
-- Functionality: Full-screen modal for viewing and editing task details
+- Functionality: Full-screen modal for viewing and editing task details including priority
 - Purpose: Provide space to read and edit all task information without cluttering the board
 - Trigger: Click on any task card
-- Progression: Click card → Modal opens → Edit any field → Save or delete → Modal closes → Board updates
-- Success criteria: All fields editable, changes persist, smooth open/close animation
+- Progression: Click card → Modal opens → Edit any field including priority → Save or delete → Modal closes → Board updates with new priority color coding
+- Success criteria: All fields editable, priority changes reflected in card appearance, changes persist, smooth open/close animation
 
 **Search and Filter**
 - Functionality: Filter tasks by title, description, or tags
@@ -138,6 +138,7 @@ Animations enhance the tactile feel of direct manipulation. Drag operations feel
   - `Trash` for delete actions
   - `Pencil` for edit actions
   - `DotsSixVertical` for column drag handles
+  - `Flag` for priority indicators
   
 - **Spacing**: 
   - Page padding: `p-6`
