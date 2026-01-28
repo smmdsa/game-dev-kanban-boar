@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useKV } from '@github/spark/hooks';
 import { Task, Column, Priority } from '@/lib/types';
+import { useTasks, useColumns } from '@/data';
 import { KanbanColumn } from '@/components/KanbanColumn';
 import { TaskDetailModal } from '@/components/TaskDetailModal';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
@@ -14,11 +14,21 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster, toast } from 'sonner';
 
 function App() {
-  const [columns, setColumns] = useKV<Column[]>('kanban-columns', []);
-  const [tasks, setTasks] = useKV<Task[]>('kanban-tasks', []);
-
-  const safeColumns = columns || [];
-  const safeTasks = tasks || [];
+  // Usar hooks del contexto de datos (Supabase)
+  const {
+    tasks: safeTasks,
+    createTask: createTaskInDb,
+    updateTask: updateTaskInDb,
+    deleteTask: deleteTaskInDb,
+  } = useTasks();
+  
+  const {
+    columns: safeColumns,
+    createColumn: createColumnInDb,
+    updateColumn: updateColumnInDb,
+    deleteColumn: deleteColumnInDb,
+    reorderColumns: reorderColumnsInDb,
+  } = useColumns();
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
@@ -32,18 +42,20 @@ function App() {
   const [draggingColumn, setDraggingColumn] = useState<Column | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<Column | null>(null);
 
-  const handleCreateColumn = (name: string, color: string) => {
-    setColumns((currentColumns) => {
-      const cols = currentColumns || [];
-      const newColumn: Column = {
-        id: `col-${Date.now()}`,
-        name,
-        color,
-        order: cols.length,
-      };
-      return [...cols, newColumn];
-    });
-    toast.success('Column created successfully');
+  const handleCreateColumn = async (name: string, color: string) => {
+    const newColumn: Column = {
+      id: `col-${Date.now()}`,
+      name,
+      color,
+      order: safeColumns.length,
+    };
+    
+    const result = await createColumnInDb(newColumn);
+    if (result.error) {
+      toast.error('Failed to create column: ' + result.error.message);
+    } else {
+      toast.success('Column created successfully');
+    }
   };
 
   const handleEditColumn = (column: Column) => {
@@ -51,22 +63,27 @@ function App() {
     setCreateColumnOpen(true);
   };
 
-  const handleSaveEditedColumn = (name: string, color: string) => {
+  const handleSaveEditedColumn = async (name: string, color: string) => {
     if (!editingColumn) return;
     
-    setColumns((currentColumns) =>
-      (currentColumns || []).map((col) =>
-        col.id === editingColumn.id ? { ...col, name, color } : col
-      )
-    );
+    const updatedColumn = { ...editingColumn, name, color };
+    const result = await updateColumnInDb(updatedColumn);
+    
+    if (result.error) {
+      toast.error('Failed to update column: ' + result.error.message);
+    } else {
+      toast.success('Column updated successfully');
+    }
     setEditingColumn(null);
-    toast.success('Column updated successfully');
   };
 
-  const handleDeleteColumn = (columnId: string) => {
-    setColumns((currentColumns) => (currentColumns || []).filter((col) => col.id !== columnId));
-    setTasks((currentTasks) => (currentTasks || []).filter((task) => task.columnId !== columnId));
-    toast.success('Column deleted');
+  const handleDeleteColumn = async (columnId: string) => {
+    const result = await deleteColumnInDb(columnId, true);
+    if (result.error) {
+      toast.error('Failed to delete column: ' + result.error.message);
+    } else {
+      toast.success('Column deleted');
+    }
   };
 
   const handleAddTask = (columnId: string) => {
@@ -74,23 +91,25 @@ function App() {
     setCreateTaskOpen(true);
   };
 
-  const handleCreateTask = (title: string, description: string, points: number, tags: string[], priority: Priority) => {
-    setTasks((currentTasks) => {
-      const tasks = currentTasks || [];
-      const newTask: Task = {
-        id: `task-${Date.now()}`,
-        title,
-        description,
-        createdAt: Date.now(),
-        points,
-        tags,
-        columnId: targetColumnId,
-        priority,
-        comments: [],
-      };
-      return [...tasks, newTask];
-    });
-    toast.success('Task created');
+  const handleCreateTask = async (title: string, description: string, points: number, tags: string[], priority: Priority) => {
+    const newTask: Task = {
+      id: `task-${Date.now()}`,
+      title,
+      description,
+      createdAt: Date.now(),
+      points,
+      tags,
+      columnId: targetColumnId,
+      priority,
+      comments: [],
+    };
+    
+    const result = await createTaskInDb(newTask);
+    if (result.error) {
+      toast.error('Failed to create task: ' + result.error.message);
+    } else {
+      toast.success('Task created');
+    }
   };
 
   const handleTaskClick = (task: Task) => {
@@ -98,16 +117,22 @@ function App() {
     setTaskDetailOpen(true);
   };
 
-  const handleSaveTask = (updatedTask: Task) => {
-    setTasks((currentTasks) =>
-      (currentTasks || []).map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
-    toast.success('Task updated');
+  const handleSaveTask = async (updatedTask: Task) => {
+    const result = await updateTaskInDb(updatedTask);
+    if (result.error) {
+      toast.error('Failed to update task: ' + result.error.message);
+    } else {
+      toast.success('Task updated');
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks((currentTasks) => (currentTasks || []).filter((task) => task.id !== taskId));
-    toast.success('Task deleted');
+  const handleDeleteTask = async (taskId: string) => {
+    const result = await deleteTaskInDb(taskId);
+    if (result.error) {
+      toast.error('Failed to delete task: ' + result.error.message);
+    } else {
+      toast.success('Task deleted');
+    }
   };
 
   const handleDragStart = (task: Task) => {
@@ -124,21 +149,23 @@ function App() {
     setDragOverColumnId(columnId);
   };
 
-  const handleDrop = (columnId: string) => {
+  const handleDrop = async (columnId: string) => {
     if (!draggingTask || draggingTask.columnId === columnId) {
       setDragOverColumnId(null);
       return;
     }
 
-    setTasks((currentTasks) =>
-      (currentTasks || []).map((task) =>
-        task.id === draggingTask.id ? { ...task, columnId } : task
-      )
-    );
+    const updatedTask = { ...draggingTask, columnId };
+    const result = await updateTaskInDb(updatedTask);
+    
+    if (result.error) {
+      toast.error('Failed to move task: ' + result.error.message);
+    } else {
+      toast.success('Task moved');
+    }
     
     setDraggingTask(null);
     setDragOverColumnId(null);
-    toast.success('Task moved');
   };
 
   const handleColumnDragStart = (column: Column) => {
@@ -157,32 +184,39 @@ function App() {
     }
   };
 
-  const handleColumnDrop = (targetColumn: Column) => {
+  const handleColumnDrop = async (targetColumn: Column) => {
     if (!draggingColumn || draggingColumn.id === targetColumn.id) {
       setDragOverColumn(null);
       return;
     }
 
-    setColumns((currentColumns) => {
-      const cols = currentColumns || [];
-      const dragIndex = cols.findIndex((col) => col.id === draggingColumn.id);
-      const dropIndex = cols.findIndex((col) => col.id === targetColumn.id);
+    const cols = [...safeColumns];
+    const dragIndex = cols.findIndex((col) => col.id === draggingColumn.id);
+    const dropIndex = cols.findIndex((col) => col.id === targetColumn.id);
 
-      if (dragIndex === -1 || dropIndex === -1) return cols;
+    if (dragIndex === -1 || dropIndex === -1) {
+      setDragOverColumn(null);
+      return;
+    }
 
-      const newColumns = [...cols];
-      const [removed] = newColumns.splice(dragIndex, 1);
-      newColumns.splice(dropIndex, 0, removed);
+    const [removed] = cols.splice(dragIndex, 1);
+    cols.splice(dropIndex, 0, removed);
 
-      return newColumns.map((col, index) => ({
-        ...col,
-        order: index,
-      }));
-    });
+    const reorderedColumns = cols.map((col, index) => ({
+      ...col,
+      order: index,
+    }));
+
+    const result = await reorderColumnsInDb(reorderedColumns);
+    
+    if (result.error) {
+      toast.error('Failed to reorder columns: ' + result.error.message);
+    } else {
+      toast.success('Column reordered');
+    }
 
     setDraggingColumn(null);
     setDragOverColumn(null);
-    toast.success('Column reordered');
   };
 
   const getTasksByColumn = (columnId: string) => {

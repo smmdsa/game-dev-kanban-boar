@@ -233,7 +233,83 @@ Crea una columna desde la UI. Luego verifica en Supabase:
 
 ---
 
-## 🐛 Troubleshooting
+## � Configuración de Auth URL (GitHub Pages)
+
+Esta configuración es **CRÍTICA** para que la autenticación funcione correctamente en producción (GitHub Pages).
+
+### El Problema
+
+Por defecto, Supabase envía emails de confirmación con URLs que apuntan a `localhost:3000`, lo cual no funciona en producción.
+
+### Solución: Configurar URLs en Supabase
+
+1. Ve a tu [Dashboard de Supabase](https://app.supabase.com/)
+2. Selecciona tu proyecto
+3. Ve a `Authentication > URL Configuration`
+
+### Paso 1: Configurar Site URL
+
+En **Site URL**, pon la URL de tu GitHub Pages:
+
+```
+https://TU_USUARIO.github.io/TU_REPOSITORIO
+```
+
+Ejemplo:
+```
+https://smmdsa.github.io/game-dev-kanban-boar
+```
+
+### Paso 2: Configurar Redirect URLs
+
+En **Redirect URLs**, agrega las mismas URLs:
+
+```
+https://TU_USUARIO.github.io/TU_REPOSITORIO
+https://TU_USUARIO.github.io/TU_REPOSITORIO/
+```
+
+> ⚠️ **Importante**: Agrega ambas versiones (con y sin `/` al final)
+
+### Paso 3: (Opcional) Desarrollo Local
+
+Si también necesitas probar localmente, agrega:
+
+```
+http://localhost:5000
+http://localhost:5000/
+```
+
+### Verificación
+
+Después de configurar:
+
+1. Regístrate con un email nuevo
+2. Revisa el email de confirmación
+3. El link debe apuntar a tu GitHub Pages, no a localhost
+
+### Screenshot de Referencia
+
+```
+┌─────────────────────────────────────────────────┐
+│ URL Configuration                                │
+├─────────────────────────────────────────────────┤
+│ Site URL                                         │
+│ ┌─────────────────────────────────────────────┐ │
+│ │ https://smmdsa.github.io/game-dev-kanban... │ │
+│ └─────────────────────────────────────────────┘ │
+│                                                  │
+│ Redirect URLs                                    │
+│ ┌─────────────────────────────────────────────┐ │
+│ │ https://smmdsa.github.io/game-dev-kanban... │ │
+│ │ http://localhost:5000                        │ │
+│ └─────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## �🐛 Troubleshooting
 
 ### Error: "Supabase credentials not configured"
 

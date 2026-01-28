@@ -1,9 +1,9 @@
 import { Moon, Sun } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
-import { useTheme } from '@/hooks/use-theme'
+import { useAppTheme } from '@/data'
 
 export function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme } = useAppTheme()
 
   return (
     <Button

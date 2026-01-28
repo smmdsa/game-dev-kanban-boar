@@ -36,7 +36,7 @@ export class SupabaseTaskRepository implements TaskRepository {
     const { data, error } = await this.client
       .from('tasks')
       .select('*')
-      .order('createdAt', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (error) return failure(new Error(error.message));
     return success(this.mapTasksFromDb(data || []));
@@ -96,7 +96,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       .from('tasks')
       .select('*')
       .eq('column_id', columnId)
-      .order('createdAt', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (error) return failure(new Error(error.message));
     return success(this.mapTasksFromDb(data || []));
