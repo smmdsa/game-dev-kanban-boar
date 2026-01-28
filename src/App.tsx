@@ -28,6 +28,8 @@ function App() {
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
   const [filteredTaskIds, setFilteredTaskIds] = useState<string[]>([]);
+  const [draggingColumn, setDraggingColumn] = useState<Column | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<Column | null>(null);
 
   const handleCreateColumn = (name: string, color: string) => {
     setColumns((currentColumns) => {
@@ -136,6 +138,50 @@ function App() {
     toast.success('Task moved');
   };
 
+  const handleColumnDragStart = (column: Column) => {
+    setDraggingColumn(column);
+  };
+
+  const handleColumnDragEnd = () => {
+    setDraggingColumn(null);
+    setDragOverColumn(null);
+  };
+
+  const handleColumnDragOver = (e: React.DragEvent, targetColumn: Column) => {
+    e.preventDefault();
+    if (draggingColumn && draggingColumn.id !== targetColumn.id) {
+      setDragOverColumn(targetColumn);
+    }
+  };
+
+  const handleColumnDrop = (targetColumn: Column) => {
+    if (!draggingColumn || draggingColumn.id === targetColumn.id) {
+      setDragOverColumn(null);
+      return;
+    }
+
+    setColumns((currentColumns) => {
+      const cols = currentColumns || [];
+      const dragIndex = cols.findIndex((col) => col.id === draggingColumn.id);
+      const dropIndex = cols.findIndex((col) => col.id === targetColumn.id);
+
+      if (dragIndex === -1 || dropIndex === -1) return cols;
+
+      const newColumns = [...cols];
+      const [removed] = newColumns.splice(dragIndex, 1);
+      newColumns.splice(dropIndex, 0, removed);
+
+      return newColumns.map((col, index) => ({
+        ...col,
+        order: index,
+      }));
+    });
+
+    setDraggingColumn(null);
+    setDragOverColumn(null);
+    toast.success('Column reordered');
+  };
+
   const getTasksByColumn = (columnId: string) => {
     const columnTasks = safeTasks.filter((task) => task.columnId === columnId);
     
@@ -222,6 +268,11 @@ function App() {
                     onDragOver={(e) => handleDragOver(e, column.id)}
                     onDrop={handleDrop}
                     isDraggingOver={dragOverColumnId === column.id}
+                    onColumnDragStart={handleColumnDragStart}
+                    onColumnDragEnd={handleColumnDragEnd}
+                    onColumnDragOver={handleColumnDragOver}
+                    onColumnDrop={handleColumnDrop}
+                    isColumnDragging={draggingColumn?.id === column.id}
                   />
                 ))}
             </div>

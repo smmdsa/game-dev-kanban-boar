@@ -20,11 +20,11 @@ This is a focused task management tool with several interconnected features (col
 - Success criteria: Smooth transition between themes, all UI elements properly styled in both modes, preference persists
 
 **Column Management**
-- Functionality: Create, edit, and delete workflow columns with custom names and colors
-- Purpose: Define the stages of your game development pipeline (e.g., Backlog, In Progress, Review, Done)
-- Trigger: "Add Column" button in header
-- Progression: Click add → Enter name and select color → Confirm → Column appears on board
-- Success criteria: New columns persist after refresh, can be reordered, and tasks can be moved into them
+- Functionality: Create, edit, delete, and reorder workflow columns with custom names and colors
+- Purpose: Define and organize the stages of your game development pipeline (e.g., Backlog, In Progress, Review, Done)
+- Trigger: "Add Column" button in header (create), drag handle icon on column (reorder)
+- Progression: Click add → Enter name and select color → Confirm → Column appears on board | Drag column by handle → Drop at new position → Column order updates
+- Success criteria: New columns persist after refresh, can be reordered via drag-and-drop, and tasks can be moved into them
 
 **Task Card Creation**
 - Functionality: Create task cards with title, description, story points, and tags
@@ -39,6 +39,13 @@ This is a focused task management tool with several interconnected features (col
 - Trigger: Mouse down on a task card
 - Progression: Grab card → Drag over target column (shows visual feedback) → Release → Card moves to new column
 - Success criteria: Smooth animation, clear drop zones, immediate visual feedback, state persists
+
+**Drag-and-Drop Column Reordering**
+- Functionality: Drag entire columns to reorder workflow stages
+- Purpose: Allow users to customize column order to match their specific workflow
+- Trigger: Mouse down on column drag handle (six dots icon)
+- Progression: Grab handle → Drag column left or right → Visual feedback shows new position → Release → Column order updates and persists
+- Success criteria: Smooth reordering, visual indication of dragging column, all tasks remain with column during move, order persists
 
 **Task Detail View**
 - Functionality: Full-screen modal for viewing and editing task details
@@ -130,6 +137,7 @@ Animations enhance the tactile feel of direct manipulation. Drag operations feel
   - `MagnifyingGlass` for search
   - `Trash` for delete actions
   - `Pencil` for edit actions
+  - `DotsSixVertical` for column drag handles
   
 - **Spacing**: 
   - Page padding: `p-6`

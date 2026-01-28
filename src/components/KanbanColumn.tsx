@@ -2,7 +2,7 @@ import { Task, Column } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Pencil, Trash } from '@phosphor-icons/react';
+import { Plus, Pencil, Trash, DotsSixVertical } from '@phosphor-icons/react';
 import { TaskCard } from './TaskCard';
 
 interface KanbanColumnProps {
@@ -17,6 +17,11 @@ interface KanbanColumnProps {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (columnId: string) => void;
   isDraggingOver: boolean;
+  onColumnDragStart: (column: Column) => void;
+  onColumnDragEnd: () => void;
+  onColumnDragOver: (e: React.DragEvent, column: Column) => void;
+  onColumnDrop: (targetColumn: Column) => void;
+  isColumnDragging?: boolean;
 }
 
 export function KanbanColumn({
@@ -31,6 +36,11 @@ export function KanbanColumn({
   onDragOver,
   onDrop,
   isDraggingOver,
+  onColumnDragStart,
+  onColumnDragEnd,
+  onColumnDragOver,
+  onColumnDrop,
+  isColumnDragging = false,
 }: KanbanColumnProps) {
   const handleDeleteColumn = () => {
     if (tasks.length > 0) {
@@ -43,16 +53,24 @@ export function KanbanColumn({
   };
 
   return (
-    <div className="flex-shrink-0 w-80">
+    <div 
+      className={`flex-shrink-0 w-80 transition-all duration-200 ${
+        isColumnDragging ? 'opacity-50 scale-95' : ''
+      }`}
+      draggable
+      onDragStart={() => onColumnDragStart(column)}
+      onDragEnd={onColumnDragEnd}
+      onDragOver={(e) => onColumnDragOver(e, column)}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onColumnDrop(column);
+      }}
+    >
       <Card 
         className={`h-full flex flex-col transition-all duration-200 ${
           isDraggingOver ? 'ring-4 ring-accent scale-[1.02]' : ''
         }`}
-        onDragOver={onDragOver}
-        onDrop={(e) => {
-          e.preventDefault();
-          onDrop(column.id);
-        }}
       >
         <div 
           className="p-4 border-b flex items-center justify-between"
@@ -62,6 +80,14 @@ export function KanbanColumn({
           }}
         >
           <div className="flex items-center gap-2 flex-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 w-8 p-0 cursor-grab active:cursor-grabbing hover:bg-accent/20"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <DotsSixVertical size={20} weight="bold" style={{ color: column.color }} />
+            </Button>
             <h2 
               className="font-semibold text-lg"
               style={{ color: column.color }}
@@ -94,7 +120,15 @@ export function KanbanColumn({
         </div>
 
         <ScrollArea className="flex-1 p-4">
-          <div className="space-y-3">
+          <div 
+            className="space-y-3"
+            onDragOver={onDragOver}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDrop(column.id);
+            }}
+          >
             {tasks.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 <p>No tasks yet</p>
