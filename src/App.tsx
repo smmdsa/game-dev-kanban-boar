@@ -6,6 +6,7 @@ import { TaskDetailModal } from '@/components/TaskDetailModal';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
 import { ColumnModal } from '@/components/ColumnModal';
 import { SearchFilter } from '@/components/SearchFilter';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Plus } from '@phosphor-icons/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -163,10 +164,13 @@ function App() {
             </p>
           </div>
           
-          <Button onClick={() => setCreateColumnOpen(true)} size="lg">
-            <Plus size={20} weight="bold" className="mr-2" />
-            Add Column
-          </Button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Button onClick={() => setCreateColumnOpen(true)} size="lg">
+              <Plus size={20} weight="bold" className="mr-2" />
+              Add Column
+            </Button>
+          </div>
         </div>
 
         {safeTasks.length > 0 && (
