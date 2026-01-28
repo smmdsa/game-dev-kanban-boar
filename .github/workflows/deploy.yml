@@ -38,6 +38,8 @@ jobs:
         run: npm run build
         env:
           CI: true
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
 
       - name: Upload artifact to Pages
         uses: actions/upload-pages-artifact@v3
