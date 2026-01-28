@@ -228,6 +228,148 @@ interface Props {
 - ❌ Don't use `Function` type - specify exact signature: `(param: string) => void`
 - ❌ Don't mutate state directly - always use setter functions with new objects/arrays
 
+## SOLID Design Principles
+
+### S - Single Responsibility Principle
+Each component/function should have ONE reason to change.
+
+**Current implementation:**
+- `TaskCard.tsx`: Only displays task (doesn't handle drag logic directly)
+- `App.tsx`: State container (doesn't render drag zones)
+- `KanbanColumn.tsx`: Column rendering with drag zone logic (separated concerns)
+
+**Anti-pattern to avoid:**
+```typescript
+// ❌ BAD: TaskCard does too much
+export function TaskCard({ task }) {
+  const handleDelete = () => { /* API call + UI update + analytics */ };
+  const handleDrag = () => { /* complex drag logic + persistence */ };
+  const renderUI = () => { /* 200 lines of JSX */ };
+  return renderUI();
+}
+
+// ✅ GOOD: TaskCard only renders, handlers come from props
+export function TaskCard({ task, onClick, onDragStart, onDragEnd }) {
+  return <Card>{/* focused UI only */}</Card>;
+}
+```
+
+### O - Open/Closed Principle
+Open for extension, closed for modification. Add features without changing existing code.
+
+**Current implementation:**
+- Color system: Add new colors to `PRESET_COLORS` in `constants.ts` - no component changes needed
+- Priority levels: Add to `PRIORITY_LEVELS` array - existing code automatically picks it up
+- Tags: Add to `TAG_COLORS` - no logic changes required
+
+**Pattern example:**
+```typescript
+// ✅ GOOD: Adding new priority doesn't change TaskCard
+export const PRIORITY_LEVELS = [
+  { value: 'critical' as const, label: 'Critical', color: '...', borderColor: '...' },
+  { value: 'high' as const, label: 'High', color: '...', borderColor: '...' },
+  // Add new priority here - TaskCard uses it automatically
+];
+
+// TaskCard just looks up the config
+const priorityConfig = PRIORITY_LEVELS.find(p => p.value === task.priority);
+```
+
+### L - Liskov Substitution Principle
+Subtypes must be substitutable for base types. Maintain interface contracts.
+
+**Current implementation:**
+- All modal components follow same contract: accept data, emit changes via callbacks
+- Column operations (create, edit, delete) have consistent handler signatures
+- Task handlers are interchangeable
+
+**Pattern:**
+```typescript
+// ✅ Modal components follow consistent interface
+interface ModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: T) => void;
+}
+
+// Both work interchangeably
+<CreateTaskModal {...props} />
+<TaskDetailModal {...props} />
+```
+
+### I - Interface Segregation Principle
+Don't force components to depend on interfaces they don't use. Keep props minimal.
+
+**Current implementation:**
+- `TaskCard` doesn't need column operations → doesn't receive column handlers
+- `KanbanColumn` doesn't need task detail modal logic → passed as callback only
+- Modals only receive props they actually use
+
+**Anti-pattern to avoid:**
+```typescript
+// ❌ BAD: Passing everything
+interface KanbanColumnProps {
+  column: Column;
+  tasks: Task[];
+  onTaskClick: (task: Task) => void;
+  onTaskDrag: (task: Task) => void;
+  onTaskUpdate: (task: Task) => void;
+  onTaskDelete: (taskId: string) => void;
+  onColumnEdit: (column: Column) => void;
+  onColumnDelete: (columnId: string) => void;
+  onThemeToggle: () => void;
+  onFilterChange: (filter: string) => void;
+  // ... 10 more props that component doesn't use
+}
+
+// ✅ GOOD: Only required props
+interface KanbanColumnProps {
+  column: Column;
+  tasks: Task[];
+  onTaskClick: (task: Task) => void;
+  onAddTask: (columnId: string) => void;
+  onEditColumn: (column: Column) => void;
+  onDeleteColumn: (columnId: string) => void;
+  onDragStart: (task: Task) => void;
+  onDragEnd: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (columnId: string) => void;
+}
+```
+
+### D - Dependency Inversion Principle
+Depend on abstractions, not concretions. Inject dependencies as props or hooks.
+
+**Current implementation:**
+- `useKV` is injected, not hard-coded localStorage calls
+- Color configs are passed as props, not imported globally in components
+- Theme via `useTheme()` hook - abstraction over implementation
+
+**Pattern example:**
+```typescript
+// ✅ GOOD: Depends on abstraction (hook)
+export function TaskCard({ task, onClick, onDragStart, onDragEnd }: TaskCardProps) {
+  const getTagColor = (tagName: string) => {
+    // Uses injected constant, not direct import dependency
+    const tagConfig = TAG_COLORS.find(t => t.name === tagName);
+    return tagConfig?.color || 'oklch(0.5 0.01 260)';
+  };
+}
+
+// ✅ GOOD: Dependencies injected
+const [columns, setColumns] = useKV<Column[]>('kanban-columns', []);
+// Not: const columns = getFromLocalStorage('columns');
+```
+
+### Applying SOLID When Making Changes
+
+**Before adding a feature, ask:**
+1. **S**: Does this component do one thing? If modifying App.tsx, is logic leaking from specific components?
+2. **O**: Can I add this feature by extending existing code (new color, new priority) rather than modifying?
+3. **L**: Do my components maintain their contracts? Can they be replaced without breaking consumers?
+4. **I**: Am I passing props a component doesn't need? Should I split the interface?
+5. **D**: Am I hard-coding dependencies? Should I inject them as props or use hooks?
+
 ## Testing & Validation
 - Manually test drag-and-drop in both directions (tasks between columns, column reordering)
 - Verify data persists after page refresh
