@@ -64,36 +64,78 @@ export const FIBONACCI_POINTS = [
 ] as const;
 
 /**
- * Interpola el color para los puntos Fibonacci desde verde (1) a violeta fuerte (89)
- * Valor 0 es neutral (gris)
+ * Colores para los puntos Fibonacci con progresión clara de dificultad
+ * 1 = Verde (muy fácil) → 89 = Violeta (extremadamente difícil)
+ * Progresión: Verde → Amarillo → Naranja → Rojo → Azul → Violeta
  */
 export function getFibonacciPointColor(value: number): { bg: string; border: string; text: string } {
-  // Valor 0 es neutral
-  if (value === 0) {
-    return {
-      bg: 'oklch(0.5 0.01 260)',
-      border: 'oklch(0.4 0.01 260)',
+  const colorMap: Record<number, { bg: string; border: string; text: string }> = {
+    0: {
+      bg: 'oklch(0.50 0.02 260)',
+      border: 'oklch(0.40 0.02 260)',
       text: 'oklch(0.98 0 0)',
-    };
-  }
-
-  // Interpolación de 1 a 89
-  const minValue = 1;
-  const maxValue = 89;
-  const t = (value - minValue) / (maxValue - minValue);
-
-  // Verde simple (145°) a Violeta fuerte (285°)
-  const startHue = 145; // Verde
-  const endHue = 285;   // Violeta
-  const hue = startHue + (endHue - startHue) * t;
-
-  // Ajustar luminosidad y saturación para mejor contraste
-  const lightness = 0.65 - t * 0.20; // De 0.65 a 0.45
-  const chroma = 0.18 + t * 0.07;     // De 0.18 a 0.25
-
-  return {
-    bg: `oklch(${lightness} ${chroma} ${hue})`,
-    border: `oklch(${lightness - 0.1} ${chroma} ${hue})`,
-    text: 'oklch(0.98 0 0)',
+    },
+    1: {
+      // Verde brillante - Muy fácil
+      bg: 'oklch(0.70 0.20 145)',
+      border: 'oklch(0.55 0.20 145)',
+      text: 'oklch(0.98 0 0)',
+    },
+    2: {
+      // Verde claro
+      bg: 'oklch(0.68 0.18 135)',
+      border: 'oklch(0.53 0.18 135)',
+      text: 'oklch(0.98 0 0)',
+    },
+    3: {
+      // Verde-Amarillo
+      bg: 'oklch(0.75 0.18 120)',
+      border: 'oklch(0.60 0.18 120)',
+      text: 'oklch(0.15 0 0)',
+    },
+    5: {
+      // Amarillo - Moderado
+      bg: 'oklch(0.80 0.18 95)',
+      border: 'oklch(0.65 0.18 95)',
+      text: 'oklch(0.15 0 0)',
+    },
+    8: {
+      // Naranja claro
+      bg: 'oklch(0.75 0.20 70)',
+      border: 'oklch(0.60 0.20 70)',
+      text: 'oklch(0.15 0 0)',
+    },
+    13: {
+      // Naranja - Difícil
+      bg: 'oklch(0.70 0.22 50)',
+      border: 'oklch(0.55 0.22 50)',
+      text: 'oklch(0.98 0 0)',
+    },
+    21: {
+      // Rojo - Muy difícil
+      bg: 'oklch(0.60 0.24 30)',
+      border: 'oklch(0.45 0.24 30)',
+      text: 'oklch(0.98 0 0)',
+    },
+    34: {
+      // Azul - Complejo
+      bg: 'oklch(0.55 0.22 250)',
+      border: 'oklch(0.40 0.22 250)',
+      text: 'oklch(0.98 0 0)',
+    },
+    55: {
+      // Azul-Violeta
+      bg: 'oklch(0.52 0.24 270)',
+      border: 'oklch(0.37 0.24 270)',
+      text: 'oklch(0.98 0 0)',
+    },
+    89: {
+      // Violeta fuerte - Extremadamente difícil
+      bg: 'oklch(0.48 0.26 290)',
+      border: 'oklch(0.33 0.26 290)',
+      text: 'oklch(0.98 0 0)',
+    },
   };
+
+  return colorMap[value] || colorMap[0];
 }
