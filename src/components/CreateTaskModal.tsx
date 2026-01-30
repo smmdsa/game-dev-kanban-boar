@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X, Flag } from '@phosphor-icons/react';
-import { TAG_COLORS, PRIORITY_LEVELS } from '@/lib/constants';
+import { TAG_COLORS, PRIORITY_LEVELS, FIBONACCI_POINTS } from '@/lib/constants';
 import { Priority } from '@/lib/types';
 
 interface CreateTaskModalProps {
@@ -97,16 +97,29 @@ export function CreateTaskModal({ open, onClose, onCreate }: CreateTaskModalProp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-points">Story Points</Label>
-            <Input
-              id="new-points"
-              type="number"
-              min="0"
-              value={points}
-              onChange={(e) => setPoints(e.target.value)}
-              placeholder="0"
-              className="text-base"
-            />
+            <Label>Story Points</Label>
+            <div className="grid grid-cols-6 gap-2">
+              {FIBONACCI_POINTS.map((point) => (
+                <button
+                  key={point.value}
+                  type="button"
+                  onClick={() => setPoints(point.value.toString())}
+                  className={`
+                    h-12 rounded-lg border-2 font-semibold text-sm
+                    transition-all hover:scale-105
+                    ${points === point.value.toString()
+                      ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
+                      : 'border-input hover:border-primary/50 hover:bg-accent'
+                    }
+                  `}
+                >
+                  {point.value}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Selecciona los puntos de historia usando la secuencia de Fibonacci
+            </p>
           </div>
 
           <div className="space-y-2">
