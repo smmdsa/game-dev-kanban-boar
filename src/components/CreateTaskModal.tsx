@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X, Flag } from '@phosphor-icons/react';
-import { TAG_COLORS, PRIORITY_LEVELS, FIBONACCI_POINTS } from '@/lib/constants';
+import { TAG_COLORS, PRIORITY_LEVELS, FIBONACCI_POINTS, getFibonacciPointColor } from '@/lib/constants';
 import { Priority } from '@/lib/types';
 
 interface CreateTaskModalProps {
@@ -99,23 +99,25 @@ export function CreateTaskModal({ open, onClose, onCreate }: CreateTaskModalProp
           <div className="space-y-2">
             <Label>Story Points</Label>
             <div className="grid grid-cols-6 gap-2">
-              {FIBONACCI_POINTS.map((point) => (
-                <button
-                  key={point.value}
-                  type="button"
-                  onClick={() => setPoints(point.value.toString())}
-                  className={`
-                    h-12 rounded-lg border-2 font-semibold text-sm
-                    transition-all hover:scale-105
-                    ${points === point.value.toString()
-                      ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
-                      : 'border-input hover:border-primary/50 hover:bg-accent'
-                    }
-                  `}
-                >
-                  {point.value}
-                </button>
-              ))}
+              {FIBONACCI_POINTS.map((point) => {
+                const colors = getFibonacciPointColor(point.value);
+                const isSelected = points === point.value.toString();
+                return (
+                  <button
+                    key={point.value}
+                    type="button"
+                    onClick={() => setPoints(point.value.toString())}
+                    style={{
+                      backgroundColor: isSelected ? colors.bg : 'transparent',
+                      borderColor: colors.border,
+                      color: isSelected ? colors.text : colors.bg,
+                    }}
+                    className="h-12 rounded-lg border-2 font-semibold text-sm transition-all hover:scale-105 hover:opacity-80"
+                  >
+                    {point.value}
+                  </button>
+                );
+              })}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               Selecciona los puntos de historia usando la secuencia de Fibonacci

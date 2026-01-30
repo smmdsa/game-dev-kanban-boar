@@ -62,3 +62,38 @@ export const FIBONACCI_POINTS = [
   { value: 55, label: '55' },
   { value: 89, label: '89' },
 ] as const;
+
+/**
+ * Interpola el color para los puntos Fibonacci desde verde (1) a violeta fuerte (89)
+ * Valor 0 es neutral (gris)
+ */
+export function getFibonacciPointColor(value: number): { bg: string; border: string; text: string } {
+  // Valor 0 es neutral
+  if (value === 0) {
+    return {
+      bg: 'oklch(0.5 0.01 260)',
+      border: 'oklch(0.4 0.01 260)',
+      text: 'oklch(0.98 0 0)',
+    };
+  }
+
+  // Interpolación de 1 a 89
+  const minValue = 1;
+  const maxValue = 89;
+  const t = (value - minValue) / (maxValue - minValue);
+
+  // Verde simple (145°) a Violeta fuerte (285°)
+  const startHue = 145; // Verde
+  const endHue = 285;   // Violeta
+  const hue = startHue + (endHue - startHue) * t;
+
+  // Ajustar luminosidad y saturación para mejor contraste
+  const lightness = 0.65 - t * 0.20; // De 0.65 a 0.45
+  const chroma = 0.18 + t * 0.07;     // De 0.18 a 0.25
+
+  return {
+    bg: `oklch(${lightness} ${chroma} ${hue})`,
+    border: `oklch(${lightness - 0.1} ${chroma} ${hue})`,
+    text: 'oklch(0.98 0 0)',
+  };
+}

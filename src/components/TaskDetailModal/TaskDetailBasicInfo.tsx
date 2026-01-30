@@ -1,7 +1,7 @@
 import { Task } from '@/lib/types';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FIBONACCI_POINTS } from '@/lib/constants';
+import { FIBONACCI_POINTS, getFibonacciPointColor } from '@/lib/constants';
 
 interface TaskDetailBasicInfoProps {
   task: Task;
@@ -37,23 +37,25 @@ export function TaskDetailBasicInfo({
       <div className="space-y-3">
         <Label className="text-base font-semibold">Story Points</Label>
         <div className="grid grid-cols-6 gap-2">
-          {FIBONACCI_POINTS.map((point) => (
-            <button
-              key={point.value}
-              type="button"
-              onClick={() => setPoints(point.value.toString())}
-              className={`
-                h-12 rounded-lg border-2 font-semibold text-sm
-                transition-all hover:scale-105
-                ${points === point.value.toString()
-                  ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
-                  : 'border-input hover:border-primary/50 hover:bg-accent'
-                }
-              `}
-            >
-              {point.value}
-            </button>
-          ))}
+          {FIBONACCI_POINTS.map((point) => {
+            const colors = getFibonacciPointColor(point.value);
+            const isSelected = points === point.value.toString();
+            return (
+              <button
+                key={point.value}
+                type="button"
+                onClick={() => setPoints(point.value.toString())}
+                style={{
+                  backgroundColor: isSelected ? colors.bg : 'transparent',
+                  borderColor: colors.border,
+                  color: isSelected ? colors.text : colors.bg,
+                }}
+                className="h-12 rounded-lg border-2 font-semibold text-sm transition-all hover:scale-105 hover:opacity-80"
+              >
+                {point.value}
+              </button>
+            );
+          })}
         </div>
         <p className="text-xs text-muted-foreground">
           Selecciona los puntos usando la secuencia de Fibonacci
