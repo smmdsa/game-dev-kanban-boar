@@ -22,6 +22,7 @@ interface KanbanColumnProps {
   onColumnDragOver: (e: React.DragEvent, column: Column) => void;
   onColumnDrop: (targetColumn: Column) => void;
   isColumnDragging?: boolean;
+  onTaskReorder: (taskId: string, newOrder: number, columnId: string) => void;
 }
 
 export function KanbanColumn({
@@ -41,6 +42,7 @@ export function KanbanColumn({
   onColumnDragOver,
   onColumnDrop,
   isColumnDragging = false,
+  onTaskReorder,
 }: KanbanColumnProps) {
   const handleDeleteColumn = () => {
     if (tasks.length > 0) {
@@ -135,14 +137,26 @@ export function KanbanColumn({
                 <p className="text-xs mt-1">Drop tasks here or click + to add</p>
               </div>
             ) : (
-              tasks.map((task) => (
-                <TaskCard
+              tasks.map((task, index) => (
+                <div
                   key={task.id}
-                  task={task}
-                  onClick={() => onTaskClick(task)}
-                  onDragStart={() => onDragStart(task)}
-                  onDragEnd={onDragEnd}
-                />
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onTaskReorder(task.id, index, column.id);
+                  }}
+                >
+                  <TaskCard
+                    task={task}
+                    onClick={() => onTaskClick(task)}
+                    onDragStart={() => onDragStart(task)}
+                    onDragEnd={onDragEnd}
+                  />
+                </div>
               ))
             )}
           </div>

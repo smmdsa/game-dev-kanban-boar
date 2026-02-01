@@ -45,6 +45,7 @@ CREATE TABLE tasks (
   column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
   priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('critical', 'high', 'medium', 'low')),
   comments JSONB DEFAULT '[]',
+  "order" INTEGER NOT NULL DEFAULT 0,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -53,6 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_column_id ON tasks (column_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority);
 CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks (created_at);
 CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks (user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_order ON tasks ("order");
 
 -- ===========================================
 -- Tabla: user_settings (para preferencias)

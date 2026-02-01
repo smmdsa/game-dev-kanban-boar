@@ -94,6 +94,11 @@ function App() {
   };
 
   const handleCreateTask = async (title: string, description: string, points: number, tags: string[], priority: Priority) => {
+    const tasksInColumn = safeTasks.filter((t) => t.columnId === targetColumnId);
+    const maxOrder = tasksInColumn.length > 0 
+      ? Math.max(...tasksInColumn.map(t => t.order || 0)) 
+      : -1;
+
     const newTask: Task = {
       id: `task-${Date.now()}`,
       title,
@@ -104,6 +109,7 @@ function App() {
       columnId: targetColumnId,
       priority,
       comments: [],
+      order: maxOrder + 1,
     };
     
     const result = await createTaskInDb(newTask);
@@ -152,12 +158,28 @@ function App() {
   };
 
   const handleDrop = async (columnId: string) => {
-    if (!draggingTask || draggingTask.columnId === columnId) {
+    if (!draggingTask) {
       setDragOverColumnId(null);
       return;
     }
 
-    const updatedTask = { ...draggingTask, columnId };
+    // Si la tarea se está moviendo a la misma columna, no hacer nada aquí (se manejará con onTaskReorder)
+    if (draggingTask.columnId === columnId) {
+      setDragOverColumnId(null);
+      return;
+    }
+
+    // Cambiar la columna de la tarea
+    const tasksInTargetColumn = safeTasks.filter((t) => t.columnId === columnId);
+    const maxOrder = tasksInTargetColumn.length > 0 
+      ? Math.max(...tasksInTargetColumn.map(t => t.order || 0)) 
+      : -1;
+
+    const updatedTask = { 
+      ...draggingTask, 
+      columnId,
+      order: maxOrder + 1
+    };
     const result = await updateTaskInDb(updatedTask);
     
     if (result.error) {
@@ -168,6 +190,49 @@ function App() {
     
     setDraggingTask(null);
     setDragOverColumnId(null);
+  };
+
+  const handleTaskReorder = async (targetTaskId: string, newOrder: number, columnId: string) => {
+    if (!draggingTask || draggingTask.columnId !== columnId) {
+      return;
+    }
+
+    if (draggingTask.id === targetTaskId) {
+      return;
+    }
+
+    const columnTasks = safeTasks
+      .filter((task) => task.columnId === columnId)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    const draggedIndex = columnTasks.findIndex((t) => t.id === draggingTask.id);
+    const targetIndex = newOrder;
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      return;
+    }
+
+    // Reordenar las tareas
+    const reorderedTasks = [...columnTasks];
+    const [removed] = reorderedTasks.splice(draggedIndex, 1);
+    reorderedTasks.splice(targetIndex, 0, removed);
+
+    // Actualizar el orden de todas las tareas afectadas
+    const tasksToUpdate = reorderedTasks.map((task, index) => ({
+      ...task,
+      order: index,
+    }));
+
+    // Actualizar todas las tareas en batch
+    for (const task of tasksToUpdate) {
+      const result = await updateTaskInDb(task);
+      if (result.error) {
+        toast.error('Failed to reorder tasks: ' + result.error.message);
+        return;
+      }
+    }
+
+    toast.success('Task reordered');
   };
 
   const handleColumnDragStart = (column: Column) => {
@@ -299,6 +364,9 @@ function App() {
   const getTasksByColumn = (columnId: string) => {
     const columnTasks = safeTasks.filter((task) => task.columnId === columnId);
     
+    // Ordenar por el campo order
+    columnTasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
     if (filteredTaskIds.length === 0) {
       return columnTasks;
     }
@@ -396,6 +464,7 @@ function App() {
                     onColumnDragOver={handleColumnDragOver}
                     onColumnDrop={handleColumnDrop}
                     isColumnDragging={draggingColumn?.id === column.id}
+                    onTaskReorder={handleTaskReorder}
                   />
                 ))}
             </div>

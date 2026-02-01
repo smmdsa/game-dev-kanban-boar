@@ -19,6 +19,7 @@ export interface Task {
   columnId: string;
   priority: Priority;
   comments?: Comment[];
+  order: number;
 }
 
 export interface Column {
