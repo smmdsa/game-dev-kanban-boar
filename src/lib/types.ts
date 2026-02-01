@@ -6,6 +6,7 @@ export interface Comment {
   createdAt: number;
   author: string;
   authorAvatar?: string;
+  isSaving?: boolean;
 }
 
 export interface Task {

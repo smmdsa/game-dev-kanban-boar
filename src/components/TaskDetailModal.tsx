@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Task, Priority, Comment } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +29,7 @@ interface TaskDetailModalProps {
 }
 
 export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskDetailModalProps) {
+  const { user } = useAuth();
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [points, setPoints] = useState(task?.points.toString() || '0');
@@ -46,13 +49,28 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
       setPriority(task.priority);
       setComments(task.comments || []);
       
-      window.spark.user().then(user => {
+      // Try Spark API first, fallback to Auth context
+      window.spark.user().then(sparkUser => {
+        if (sparkUser) {
+          setCurrentUser({ login: sparkUser.login, avatarUrl: sparkUser.avatarUrl });
+        } else if (user) {
+          // Fallback to Supabase user
+          setCurrentUser({
+            login: user.user_metadata?.name || user.email?.split('@')[0] || user.id,
+            avatarUrl: user.user_metadata?.avatar_url || '',
+          });
+        }
+      }).catch(() => {
+        // If Spark API fails, use Auth context
         if (user) {
-          setCurrentUser({ login: user.login, avatarUrl: user.avatarUrl });
+          setCurrentUser({
+            login: user.user_metadata?.name || user.email?.split('@')[0] || user.id,
+            avatarUrl: user.user_metadata?.avatar_url || '',
+          });
         }
       });
     }
-  }, [open, task]);
+  }, [open, task, user]);
 
   const handleSave = () => {
     if (!task || !title.trim()) return;
@@ -71,8 +89,8 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
     onClose();
   };
 
-  const handleAddComment = () => {
-    if (!newComment.trim() || !currentUser) return;
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !currentUser || !task) return;
 
     const comment: Comment = {
       id: `comment-${Date.now()}`,
@@ -80,14 +98,59 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
       createdAt: Date.now(),
       author: currentUser.login,
       authorAvatar: currentUser.avatarUrl,
+      isSaving: true, // Mark as saving
     };
 
-    setComments([...comments, comment]);
+    // Optimistic update - show comment immediately
+    const updatedComments = [...comments, comment];
+    setComments(updatedComments);
     setNewComment('');
+
+    try {
+      // Save to database immediately
+      const updatedTask: Task = {
+        ...task,
+        comments: updatedComments.map(c => ({ ...c, isSaving: undefined })), // Remove isSaving flag before saving
+      };
+      
+      onSave(updatedTask);
+      
+      // Remove saving state after successful save
+      setComments(updatedComments.map(c => 
+        c.id === comment.id ? { ...c, isSaving: false } : c
+      ));
+      
+      toast.success('Comment added successfully');
+    } catch (error) {
+      // Revert optimistic update on error
+      setComments(comments);
+      toast.error('Failed to add comment. Please try again.');
+      console.error('Error adding comment:', error);
+    }
   };
 
-  const handleDeleteComment = (commentId: string) => {
-    setComments(comments.filter(c => c.id !== commentId));
+  const handleDeleteComment = async (commentId: string) => {
+    if (!task) return;
+
+    // Optimistic update - remove comment immediately
+    const updatedComments = comments.filter(c => c.id !== commentId);
+    setComments(updatedComments);
+
+    try {
+      // Save to database immediately
+      const updatedTask: Task = {
+        ...task,
+        comments: updatedComments,
+      };
+      
+      onSave(updatedTask);
+      toast.success('Comment deleted successfully');
+    } catch (error) {
+      // Revert optimistic update on error
+      setComments(comments);
+      toast.error('Failed to delete comment. Please try again.');
+      console.error('Error deleting comment:', error);
+    }
   };
 
   const handleAddTag = (tagName: string) => {

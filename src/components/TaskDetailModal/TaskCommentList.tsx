@@ -1,6 +1,7 @@
 import { Comment } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ChatCircle, Trash } from '@phosphor-icons/react';
 
 interface TaskCommentListProps {
@@ -42,6 +43,11 @@ export function TaskCommentList({
                 <span className="text-sm text-muted-foreground">
                   {formatCommentDate(comment.createdAt)}
                 </span>
+                {comment.isSaving && (
+                  <Badge variant="secondary" className="text-xs">
+                    Saving...
+                  </Badge>
+                )}
               </div>
               {currentUser && currentUser.login === comment.author && (
                 <Button
