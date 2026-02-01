@@ -13,7 +13,8 @@ A powerful Kanban board built with **GitHub Spark** framework, designed specific
 - 🌓 **Dark/Light Theme**: Built-in theme switching
 - 🔍 **Search & Filter**: Find tasks instantly
 - 💾 **Dual Storage**: Switch between local (Spark) and cloud (Supabase)
-- 🔒 **Row Level Security**: Your data is protected and isolated
+- �📤 **Export/Import**: Backup and restore your board data as JSON
+- �🔒 **Row Level Security**: Your data is protected and isolated
 
 ## 🚀 Quick Start
 
@@ -117,6 +118,78 @@ src/
 - ✅ Type-safe with TypeScript
 
 **📚 Architecture guide:** See [src/data/README.md](src/data/README.md)
+
+## 📥📤 Export & Import
+
+### Exporting Your Board
+
+1. Click the **"Export/Import"** button in the header
+2. Switch to the **"Export"** tab
+3. Enter a board name (optional)
+4. Click **"Export Board"**
+5. A JSON file will be downloaded with all your data
+
+**Export includes:**
+- All columns with colors and order
+- All tasks with descriptions, priorities, tags
+- All comments on tasks
+- Metadata (version, timestamp, board name)
+
+### Importing a Board
+
+1. Click the **"Export/Import"** button in the header
+2. Switch to the **"Import"** tab
+3. Select a JSON file from your computer
+4. Review the preview showing:
+   - Number of columns and tasks
+   - Export date and version
+   - Data validation results
+5. Click **"Import Board"** to confirm
+
+**⚠️ Important:** Importing will **replace all existing data** on your board. Make sure to export your current board first if you want to keep it.
+
+### JSON Format
+
+The export file follows this structure:
+
+```json
+{
+  "version": "1.0",
+  "boardName": "My Game Project",
+  "exportedAt": 1738454400000,
+  "board": {
+    "columns": [
+      {
+        "id": "col-123",
+        "name": "Todo",
+        "color": "oklch(0.45 0.15 285)",
+        "order": 0
+      }
+    ],
+    "tasks": [
+      {
+        "id": "task-456",
+        "title": "Design player character",
+        "description": "Create concept art for main character",
+        "columnId": "col-123",
+        "priority": "high",
+        "tags": ["Art", "Design"],
+        "points": 8,
+        "createdAt": 1738454400000,
+        "comments": []
+      }
+    ]
+  }
+}
+```
+
+### Use Cases
+
+- **Backup**: Regularly export your board for safekeeping
+- **Migration**: Move data between devices or storage providers
+- **Templates**: Create template boards and share with team
+- **Version Control**: Keep board snapshots at project milestones
+- **Collaboration**: Share board state with teammates (when using local storage)
 
 ## 🎯 Development
 

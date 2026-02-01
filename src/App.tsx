@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Task, Column, Priority } from '@/lib/types';
+import { Task, Column, Priority, Board } from '@/lib/types';
 import { useTasks, useColumns } from '@/data';
 import { KanbanColumn } from '@/components/KanbanColumn';
 import { TaskDetailModal } from '@/components/TaskDetailModal';
@@ -8,8 +8,9 @@ import { ColumnModal } from '@/components/ColumnModal';
 import { SearchFilter } from '@/components/SearchFilter';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserProfile } from '@/components/UserProfile';
+import { ExportImportModal } from '@/components/ExportImportModal';
 import { Button } from '@/components/ui/button';
-import { Plus } from '@phosphor-icons/react';
+import { Plus, Download, Upload } from '@phosphor-icons/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster, toast } from 'sonner';
 
@@ -41,6 +42,7 @@ function App() {
   const [filteredTaskIds, setFilteredTaskIds] = useState<string[]>([]);
   const [draggingColumn, setDraggingColumn] = useState<Column | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<Column | null>(null);
+  const [exportImportOpen, setExportImportOpen] = useState(false);
 
   const handleCreateColumn = async (name: string, color: string) => {
     const newColumn: Column = {
@@ -219,6 +221,81 @@ function App() {
     setDragOverColumn(null);
   };
 
+  const handleExport = (boardName: string) => {
+    const exportData = {
+      version: '1.0',
+      boardName,
+      exportedAt: Date.now(),
+      board: {
+        columns: safeColumns,
+        tasks: safeTasks,
+      },
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${boardName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success('Board exported successfully');
+  };
+
+  const handleImport = async (board: Board) => {
+    const toastId = toast.loading('Preparing import...');
+    
+    try {
+      // Delete all existing tasks first
+      toast.loading('Clearing existing tasks...', { id: toastId });
+      
+      for (const task of safeTasks) {
+        const result = await deleteTaskInDb(task.id);
+        if (result.error) {
+          throw new Error(`Failed to delete task: ${result.error.message}`);
+        }
+      }
+      
+      // Delete all existing columns
+      toast.loading('Clearing existing columns...', { id: toastId });
+      
+      for (const column of safeColumns) {
+        const result = await deleteColumnInDb(column.id, false);
+        if (result.error) {
+          throw new Error(`Failed to delete column: ${result.error.message}`);
+        }
+      }
+      
+      // Import new columns
+      toast.loading(`Importing ${board.columns.length} columns...`, { id: toastId });
+      
+      for (const column of board.columns) {
+        const result = await createColumnInDb(column);
+        if (result.error) {
+          throw new Error(`Failed to create column: ${result.error.message}`);
+        }
+      }
+      
+      // Import new tasks
+      toast.loading(`Importing ${board.tasks.length} tasks...`, { id: toastId });
+      
+      for (const task of board.tasks) {
+        const result = await createTaskInDb(task);
+        if (result.error) {
+          throw new Error(`Failed to create task: ${result.error.message}`);
+        }
+      }
+      
+      toast.success(`Successfully imported ${board.columns.length} columns and ${board.tasks.length} tasks`, { id: toastId });
+    } catch (error) {
+      toast.error('Failed to import board: ' + (error instanceof Error ? error.message : 'Unknown error'), { id: toastId });
+    }
+  };
+
   const getTasksByColumn = (columnId: string) => {
     const columnTasks = safeTasks.filter((task) => task.columnId === columnId);
     
@@ -250,6 +327,14 @@ function App() {
           <div className="flex items-center gap-3">
             <UserProfile />
             <ThemeToggle />
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => setExportImportOpen(true)}
+            >
+              <Download size={18} className="mr-2" />
+              Export/Import
+            </Button>
             <Button onClick={() => setCreateColumnOpen(true)} size="lg">
               <Plus size={20} weight="bold" className="mr-2" />
               Add Column
@@ -346,6 +431,15 @@ function App() {
         }}
         onSave={editingColumn ? handleSaveEditedColumn : handleCreateColumn}
         column={editingColumn}
+      />
+
+      <ExportImportModal
+        open={exportImportOpen}
+        onClose={() => setExportImportOpen(false)}
+        onExport={handleExport}
+        onImport={handleImport}
+        columns={safeColumns}
+        tasks={safeTasks}
       />
     </div>
   );
