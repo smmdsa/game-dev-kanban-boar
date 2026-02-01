@@ -196,7 +196,7 @@ export function TaskDetailModal({ task, open, onClose, onSave, onDelete }: TaskD
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[70vw] max-w-[90vw] h-[90vh] flex flex-col p-0">
+      <DialogContent className="w-[90vw] max-w-[95vw] h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-8 pt-8 pb-4 flex-shrink-0">
           <DialogTitle className="text-2xl font-bold">Task Details</DialogTitle>
         </DialogHeader>
