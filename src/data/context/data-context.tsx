@@ -180,10 +180,7 @@ export function DataProviderWrapper({
       refreshColumns,
       refreshAll,
       setTheme,
-      setTasksOptimisticasks,
-      refreshColumns,
-      refreshAll,
-      setTheme,
+      setTasksOptimistic,
     ]
   );
 
