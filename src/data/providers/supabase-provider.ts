@@ -114,6 +114,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       columnId: row.column_id as string,
       priority: row.priority as Task['priority'] || 'medium',
       comments: (row.comments as Task['comments']) || [],
+      order: row.order as number || 0,
     };
   }
 
@@ -134,6 +135,7 @@ export class SupabaseTaskRepository implements TaskRepository {
       column_id: task.columnId,
       priority: task.priority,
       comments: task.comments || [],
+      order: task.order || 0,
     };
   }
 }

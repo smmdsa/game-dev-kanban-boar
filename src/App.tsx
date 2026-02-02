@@ -261,7 +261,6 @@ function App() {
       // Refresh final para sincronizar con la DB
       await refreshTasks();
     }
-    toast.success('Task reordered');
   };
 
   const handleColumnDragStart = (column: Column) => {
