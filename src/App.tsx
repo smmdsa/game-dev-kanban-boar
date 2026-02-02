@@ -20,8 +20,10 @@ function App() {
     tasks: safeTasks,
     createTask: createTaskInDb,
     updateTask: updateTaskInDb,
+    updateTaskSilent,
     deleteTask: deleteTaskInDb,
     setTasksOptimistic,
+    refreshTasks,
   } = useTasks();
   
   const {
@@ -189,12 +191,16 @@ function App() {
     setTasksOptimistic(newTasksState);
 
     // Guardar en base de datos en segundo plano
-    const result = await updateTaskInDb(updatedTask);
+    const result = await updateTaskSilent(updatedTask);
     
     if (result.error) {
       toast.error('Failed to move task: ' + result.error.message);
+      // Revertir al estado de la DB si hay error
+      await refreshTasks();
     } else {
       toast.success('Task moved');
+      // Refresh final para sincronizar con la DB
+      await refreshTasks();
     }
     
     setDraggingTask(null);
@@ -237,19 +243,23 @@ function App() {
     const newTasksState = [...otherTasks, ...tasksToUpdate];
     setTasksOptimistic(newTasksState);
 
-    // Guardar en base de datos en segundo plano
+    // Guardar en base de datos en segundo plano (sin refresh individual)
     let hasError = false;
     for (const task of tasksToUpdate) {
-      const result = await updateTaskInDb(task);
+      const result = await updateTaskSilent(task);
       if (result.error) {
         toast.error('Failed to reorder tasks: ' + result.error.message);
         hasError = true;
+        // Revertir al estado de la DB si hay error
+        await refreshTasks();
         break;
       }
     }
 
     if (!hasError) {
       toast.success('Task reordered');
+      // Refresh final para sincronizar con la DB
+      await refreshTasks();
     }
     toast.success('Task reordered');
   };

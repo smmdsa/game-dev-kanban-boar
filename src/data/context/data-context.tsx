@@ -231,6 +231,14 @@ export function useTasks() {
     [provider.tasks, refreshTasks]
   );
 
+  const updateTaskSilent = useCallback(
+    async (task: Task) => {
+      const result = await provider.tasks.updateTask(task);
+      return result;
+    },
+    [provider.tasks]
+  );
+
   const deleteTask = useCallback(
     async (id: string) => {
       const result = await provider.tasks.deleteTask(id);
@@ -252,12 +260,13 @@ export function useTasks() {
       tasks,
       createTask,
       updateTask,
+      updateTaskSilent,
       deleteTask,
       getTaskById,
       refreshTasks,
       setTasksOptimistic,
     }),
-    [tasks, createTask, updateTask, deleteTask, getTaskById, refreshTasks, setTasksOptimistic]
+    [tasks, createTask, updateTask, updateTaskSilent, deleteTask, getTaskById, refreshTasks, setTasksOptimistic]
   );
 }
 
