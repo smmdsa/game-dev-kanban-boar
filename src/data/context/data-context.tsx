@@ -148,7 +148,10 @@ export function DataProviderWrapper({
     return () => {
       mounted = false;
       provider.disconnect();
-    };setTasksOptimistic = useCallback((newTasks: Task[]) => {
+    };
+  }, [provider]);
+
+  const setTasksOptimistic = useCallback((newTasks: Task[]) => {
     setTasks(newTasks);
   }, []);
 

@@ -231,7 +231,8 @@ function App() {
       ...task,
       order: index,
     }));
-OPTIMISTIC UPDATE: Actualizar UI inmediatamente
+
+    // OPTIMISTIC UPDATE: Actualizar UI inmediatamente
     const otherTasks = safeTasks.filter((task) => task.columnId !== columnId);
     const newTasksState = [...otherTasks, ...tasksToUpdate];
     setTasksOptimistic(newTasksState);
