@@ -28,10 +28,15 @@ export function TaskCard({ task, onClick, onDragStart, onDragEnd }: TaskCardProp
 
   const priorityConfig = getPriorityConfig();
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.stopPropagation(); // Evitar que active el drag de la columna
+    onDragStart(e);
+  };
+
   return (
     <Card
       draggable
-      onDragStart={onDragStart}
+      onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
       onClick={onClick}
       style={{

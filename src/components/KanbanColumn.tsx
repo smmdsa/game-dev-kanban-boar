@@ -59,9 +59,6 @@ export function KanbanColumn({
       className={`flex-shrink-0 w-80 transition-all duration-200 ${
         isColumnDragging ? 'opacity-50 scale-95' : ''
       }`}
-      draggable
-      onDragStart={() => onColumnDragStart(column)}
-      onDragEnd={onColumnDragEnd}
       onDragOver={(e) => onColumnDragOver(e, column)}
       onDrop={(e) => {
         e.preventDefault();
@@ -76,6 +73,12 @@ export function KanbanColumn({
       >
         <div 
           className="p-4 border-b flex items-center justify-between"
+          draggable
+          onDragStart={(e) => {
+            e.stopPropagation();
+            onColumnDragStart(column);
+          }}
+          onDragEnd={onColumnDragEnd}
           style={{ 
             borderBottomColor: column.color,
             borderBottomWidth: '3px'
