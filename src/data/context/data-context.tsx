@@ -80,8 +80,54 @@ export function DataProviderWrapper({
       setError(result.error);
       console.error('[DataContext] Error loading tasks:', result.error);
     } else {
-      setTasks(result.data || []);
+      const loadedTasks = result.data || [];
+      
+      // Normalizar el campo order si no existe o hay duplicados
+      const tasksByColumn = new Map<string, Task[]>();
+      loadedTasks.forEach(task => {
+        if (!tasksByColumn.has(task.columnId)) {
+          tasksByColumn.set(task.columnId, []);
+        }
+        tasksByColumn.get(task.columnId)!.push(task);
+      });
+
+      const normalizedTasks: Task[] = [];
+      let needsUpdate = false;
+      
+      tasksByColumn.forEach((columnTasks, columnId) => {
+        // Ordenar por order existente, o por createdAt si no tiene order
+        columnTasks.sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          return (a.createdAt || 0) - (b.createdAt || 0);
+        });
+        
+        // Reasignar order secuencial
+        columnTasks.forEach((task, index) => {
+          const normalizedTask = { ...task, order: index };
+          normalizedTasks.push(normalizedTask);
+          
+          // Verificar si necesita actualización en DB
+          if (task.order !== index) {
+            needsUpdate = true;
+          }
+        });
+      });
+
+      setTasks(normalizedTasks);
       setError(null);
+
+      // Guardar en DB si hubo normalización (en segundo plano sin bloquear)
+      if (needsUpdate) {
+        console.log('[DataContext] Normalizing task order in database...');
+        // Usar Promise.all para actualizar en paralelo pero sin await para no bloquear
+        Promise.all(
+          normalizedTasks.map(task => provider.tasks.updateTask(task))
+        ).catch(err => {
+          console.error('[DataContext] Error normalizing tasks:', err);
+        });
+      }
     }
   }, [provider.tasks]);
 

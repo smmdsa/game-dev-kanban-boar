@@ -124,16 +124,16 @@ export function KanbanColumn({
           </div>
         </div>
 
-        <ScrollArea className="flex-1 p-4">
-          <div 
-            className="space-y-3"
-            onDragOver={onDragOver}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDrop(column.id);
-            }}
-          >
+        <ScrollArea 
+          className="flex-1 p-4"
+          onDragOver={onDragOver}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDrop(column.id);
+          }}
+        >
+          <div className="space-y-3">
             {tasks.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 <p>No tasks yet</p>
