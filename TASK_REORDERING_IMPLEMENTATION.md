@@ -24,12 +24,14 @@ Nueva función que maneja el reordenamiento de tareas:
 - Obtiene las tareas de la columna ordenadas por `order`
 - Calcula la nueva posición
 - Reordena el array de tareas
-- Actualiza el campo `order` de todas las tareas afectadas
-- Persiste los cambios en la base de datos
+- **Actualiza la UI inmediatamente (optimistic update)** usando `setTasksOptimistic`
+- Guarda los cambios en la base de datos en segundo plano
+- Muestra toast solo cuando termina la operación
 
 #### `handleDrop` (modificada)
 - Ahora solo maneja movimiento entre columnas diferentes
 - Al mover a una columna diferente, asigna el siguiente valor disponible de `order`
+- **Actualización optimista**: UI se actualiza antes de guardar en DB
 
 #### `getTasksByColumn` (modificada)
 - Ahora ordena las tareas por el campo `order` antes de devolverlas
@@ -41,6 +43,11 @@ Nueva función que maneja el reordenamiento de tareas:
 - Las nuevas tareas siempre se agregan al final
 
 ### 4. Base de Datos
+
+#### Contexto de Datos (`src/data/context/data-context.tsx`)
+- **Agregada función**: `setTasksOptimistic` para actualizaciones optimistas del estado
+- Permite actualizar la UI inmediatamente sin esperar a la base de datos
+- Mejora la experiencia de usuario con respuesta instantánea
 
 #### Esquema (`supabase/schema.sql`)
 - **Agregado**: Campo `"order" INTEGER NOT NULL DEFAULT 0` a la tabla `tasks`
@@ -82,6 +89,8 @@ Si ya tienes datos en Supabase:
 - Las tareas se ordenan en memoria usando `Array.sort()` - eficiente para tableros típicos
 - El índice `idx_tasks_order` acelera las queries de ordenamiento en Supabase
 - Solo se actualizan las tareas afectadas durante el reordenamiento
+- **Actualización optimista**: La UI responde instantáneamente mientras se guarda en segundo plano
+- La base de datos se actualiza de forma asíncrona sin bloquear la interfaz
 
 ### Edge Cases Manejados
 - ✅ Nueva tarea en columna vacía: `order = 0`
@@ -91,9 +100,10 @@ Si ya tienes datos en Supabase:
 - ✅ Filtros activos: el orden se mantiene consistente
 
 ### Comportamiento de Drag-and-Drop
-- **Dentro de la misma columna**: Reordena según el drop target
-- **Entre columnas diferentes**: Mueve y agrega al final
+- **Dentro de la misma columna**: Reordena según el drop target - **respuesta instantánea**
+- **Entre columnas diferentes**: Mueve y agrega al final - **respuesta instantánea**
 - **Feedback visual**: Existente (anillo de acento, sombra)
+- **Persistencia**: Guardado en segundo plano sin bloquear la UI
 
 ## Testing Recomendado
 
@@ -106,7 +116,8 @@ Si ya tienes datos en Supabase:
 
 ## Próximas Mejoras Sugeridas
 
-- [ ] Optimización: Batch update de tareas (actualmente actualiza una por una)
+- [ ] Optimización: Batch update de tareas en una sola transacción
 - [ ] UX: Indicador visual de "drop zone" más claro
 - [ ] Performance: Usar números flotantes para `order` y evitar actualizar todas las tareas
 - [ ] Feature: Opción de ordenar automáticamente por prioridad o fecha
+- [x] **IMPLEMENTADO**: Actualización optimista para respuesta instantánea en la UI

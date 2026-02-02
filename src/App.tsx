@@ -21,6 +21,7 @@ function App() {
     createTask: createTaskInDb,
     updateTask: updateTaskInDb,
     deleteTask: deleteTaskInDb,
+    setTasksOptimistic,
   } = useTasks();
   
   const {
@@ -180,6 +181,14 @@ function App() {
       columnId,
       order: maxOrder + 1
     };
+
+    // OPTIMISTIC UPDATE: Actualizar UI inmediatamente
+    const newTasksState = safeTasks.map((task) =>
+      task.id === updatedTask.id ? updatedTask : task
+    );
+    setTasksOptimistic(newTasksState);
+
+    // Guardar en base de datos en segundo plano
     const result = await updateTaskInDb(updatedTask);
     
     if (result.error) {
@@ -222,16 +231,25 @@ function App() {
       ...task,
       order: index,
     }));
+OPTIMISTIC UPDATE: Actualizar UI inmediatamente
+    const otherTasks = safeTasks.filter((task) => task.columnId !== columnId);
+    const newTasksState = [...otherTasks, ...tasksToUpdate];
+    setTasksOptimistic(newTasksState);
 
-    // Actualizar todas las tareas en batch
+    // Guardar en base de datos en segundo plano
+    let hasError = false;
     for (const task of tasksToUpdate) {
       const result = await updateTaskInDb(task);
       if (result.error) {
         toast.error('Failed to reorder tasks: ' + result.error.message);
-        return;
+        hasError = true;
+        break;
       }
     }
 
+    if (!hasError) {
+      toast.success('Task reordered');
+    }
     toast.success('Task reordered');
   };
 

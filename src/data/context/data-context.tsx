@@ -44,6 +44,9 @@ interface DataContextValue {
 
   /** Cambia el tema */
   setTheme: (theme: Theme) => Promise<void>;
+
+  /** Actualiza el estado local de tareas sin esperar al provider (optimistic update) */
+  setTasksOptimistic: (tasks: Task[]) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -145,8 +148,9 @@ export function DataProviderWrapper({
     return () => {
       mounted = false;
       provider.disconnect();
-    };
-  }, [provider]);
+    };setTasksOptimistic = useCallback((newTasks: Task[]) => {
+    setTasks(newTasks);
+  }, []);
 
   const value = useMemo<DataContextValue>(
     () => ({
@@ -160,6 +164,7 @@ export function DataProviderWrapper({
       refreshColumns,
       refreshAll,
       setTheme,
+      setTasksOptimistic,
     }),
     [
       provider,
@@ -169,6 +174,10 @@ export function DataProviderWrapper({
       isLoading,
       error,
       refreshTasks,
+      refreshColumns,
+      refreshAll,
+      setTheme,
+      setTasksOptimisticasks,
       refreshColumns,
       refreshAll,
       setTheme,
@@ -202,7 +211,7 @@ export function useData(): DataContextValue {
  * Hook específico para operaciones de tareas
  */
 export function useTasks() {
-  const { provider, tasks, refreshTasks } = useData();
+  const { provider, tasks, refreshTasks, setTasksOptimistic } = useData();
 
   const createTask = useCallback(
     async (task: Task) => {
@@ -246,8 +255,9 @@ export function useTasks() {
       deleteTask,
       getTaskById,
       refreshTasks,
+      setTasksOptimistic,
     }),
-    [tasks, createTask, updateTask, deleteTask, getTaskById, refreshTasks]
+    [tasks, createTask, updateTask, deleteTask, getTaskById, refreshTasks, setTasksOptimistic]
   );
 }
 
