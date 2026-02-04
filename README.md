@@ -1,5 +1,7 @@
 # 🎮 GameDev Kanban Board
 
+[![Build and Deploy to GitHub Pages](https://github.com/smmdsa/game-dev-kanban-boar/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/smmdsa/game-dev-kanban-boar/actions/workflows/deploy.yml)
+
 A powerful Kanban board built with **GitHub Spark** framework, designed specifically for game development teams. Features drag-and-drop task management, priority tracking, customizable columns, and flexible data persistence.
 
 ## ✨ Features
