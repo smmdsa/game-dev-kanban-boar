@@ -9,9 +9,10 @@ interface TaskCardProps {
   onClick: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: (e: React.DragEvent) => void;
+  onContextMenu: (e: React.MouseEvent) => void;
 }
 
-export function TaskCard({ task, onClick, onDragStart, onDragEnd }: TaskCardProps) {
+export function TaskCard({ task, onClick, onDragStart, onDragEnd, onContextMenu }: TaskCardProps) {
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -39,6 +40,7 @@ export function TaskCard({ task, onClick, onDragStart, onDragEnd }: TaskCardProp
       onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
       onClick={onClick}
+      onContextMenu={onContextMenu}
       style={{
         borderLeft: `4px solid ${priorityConfig.borderColor}`,
       }}
