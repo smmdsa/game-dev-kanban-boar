@@ -9,6 +9,7 @@ import { SearchFilter } from '@/components/SearchFilter';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserProfile } from '@/components/UserProfile';
 import { ExportImportModal } from '@/components/ExportImportModal';
+import { TaskContextMenu } from '@/components/TaskContextMenu';
 import { Button } from '@/components/ui/button';
 import { Plus, Download, Upload } from '@phosphor-icons/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -46,6 +47,7 @@ function App() {
   const [draggingColumn, setDraggingColumn] = useState<Column | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<Column | null>(null);
   const [exportImportOpen, setExportImportOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; task: Task } | null>(null);
 
   const handleCreateColumn = async (name: string, color: string) => {
     const newColumn: Column = {
@@ -314,6 +316,68 @@ function App() {
     setDragOverColumn(null);
   };
 
+  const handleTaskContextMenu = (e: React.MouseEvent, task: Task) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, task });
+  };
+
+  const handleMoveTaskToTop = async () => {
+    if (!contextMenu) return;
+    const { task } = contextMenu;
+    setContextMenu(null);
+
+    const columnTasks = safeTasks
+      .filter((t) => t.columnId === task.columnId)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (columnTasks.length <= 1 || columnTasks[0].id === task.id) return;
+
+    const reorderedTasks = [task, ...columnTasks.filter((t) => t.id !== task.id)];
+    const tasksToUpdate = reorderedTasks.map((t, index) => ({ ...t, order: index }));
+
+    const otherTasks = safeTasks.filter((t) => t.columnId !== task.columnId);
+    setTasksOptimistic([...otherTasks, ...tasksToUpdate]);
+
+    for (const t of tasksToUpdate) {
+      const result = await updateTaskSilent(t);
+      if (result.error) {
+        toast.error('Failed to move task: ' + result.error.message);
+        await refreshTasks();
+        return;
+      }
+    }
+    await refreshTasks();
+  };
+
+  const handleMoveTaskToBottom = async () => {
+    if (!contextMenu) return;
+    const { task } = contextMenu;
+    setContextMenu(null);
+
+    const columnTasks = safeTasks
+      .filter((t) => t.columnId === task.columnId)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (columnTasks.length <= 1 || columnTasks[columnTasks.length - 1].id === task.id) return;
+
+    const reorderedTasks = [...columnTasks.filter((t) => t.id !== task.id), task];
+    const tasksToUpdate = reorderedTasks.map((t, index) => ({ ...t, order: index }));
+
+    const otherTasks = safeTasks.filter((t) => t.columnId !== task.columnId);
+    setTasksOptimistic([...otherTasks, ...tasksToUpdate]);
+
+    for (const t of tasksToUpdate) {
+      const result = await updateTaskSilent(t);
+      if (result.error) {
+        toast.error('Failed to move task: ' + result.error.message);
+        await refreshTasks();
+        return;
+      }
+    }
+    await refreshTasks();
+  };
+
   const handleExport = (boardName: string) => {
     const exportData = {
       version: '1.0',
@@ -493,6 +557,7 @@ function App() {
                     onColumnDrop={handleColumnDrop}
                     isColumnDragging={draggingColumn?.id === column.id}
                     onTaskReorder={handleTaskReorder}
+                    onTaskContextMenu={handleTaskContextMenu}
                   />
                 ))}
             </div>
@@ -538,6 +603,16 @@ function App() {
         columns={safeColumns}
         tasks={safeTasks}
       />
+
+      {contextMenu && (
+        <TaskContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onMoveToTop={handleMoveTaskToTop}
+          onMoveToBottom={handleMoveTaskToBottom}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 }
