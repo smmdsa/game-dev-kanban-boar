@@ -23,6 +23,7 @@ interface KanbanColumnProps {
   onColumnDrop: (targetColumn: Column) => void;
   isColumnDragging?: boolean;
   onTaskReorder: (taskId: string, newOrder: number, columnId: string) => void;
+  onTaskContextMenu: (e: React.MouseEvent, task: Task) => void;
 }
 
 export function KanbanColumn({
@@ -43,6 +44,7 @@ export function KanbanColumn({
   onColumnDrop,
   isColumnDragging = false,
   onTaskReorder,
+  onTaskContextMenu,
 }: KanbanColumnProps) {
   const handleDeleteColumn = () => {
     if (tasks.length > 0) {
@@ -158,6 +160,7 @@ export function KanbanColumn({
                     onClick={() => onTaskClick(task)}
                     onDragStart={() => onDragStart(task)}
                     onDragEnd={onDragEnd}
+                    onContextMenu={(e) => onTaskContextMenu(e, task)}
                   />
                 </div>
               ))
